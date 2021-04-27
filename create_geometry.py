@@ -6,7 +6,7 @@ Class object which discretises the rotor blade(s) into bound and trailing vortex
 filaments
 """
 
-class CreateBladeGeometry:
+class BladeGeometry:
 
     def __init__(self, radius, tsr, v_inf, n_blades, n_span, n_theta):
 
