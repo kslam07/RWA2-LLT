@@ -1,9 +1,8 @@
-import numpy as np
-
 """
 Class object which discretises the rotor blade(s) into bound and trailing vortex
 filaments
 """
+import numpy as np
 
 
 class BladeGeometry:
@@ -19,16 +18,16 @@ class BladeGeometry:
         self.span_arr = np.linspace(0.2, 1.0, n_span)
         self.theta_arr = np.linspace(0, 2 * np.pi, n_theta)
 
-        self.cp = np.zeros((3, n_span, 9))  # coord; normal; tangential
-        self.rings = {"x1": np.zeros((n_blades, n_span, 2*n_theta+2)),
-                      "x2": np.zeros((n_blades, n_span, 2*n_theta+2)),
-                      "y1": np.zeros((n_blades, n_span, 2*n_theta+2)),
-                      "y2": np.zeros((n_blades, n_span, 2*n_theta+2)),
-                      "z1": np.zeros((n_blades, n_span, 2*n_theta+2)),
-                      "z2": np.zeros((n_blades, n_span, 2*n_theta+2)),
-                      "gamma": np.zeros((n_blades, n_span, 2*n_theta+2))
+        self.cp = np.zeros((3, n_span, 10))  # coord; normal; tangential
+        self.rings = {"x1": np.zeros((n_blades * n_span, 2 * n_theta + 2)),
+                      "x2": np.zeros((n_blades * n_span, 2 * n_theta + 2)),
+                      "y1": np.zeros((n_blades * n_span, 2 * n_theta + 2)),
+                      "y2": np.zeros((n_blades * n_span, 2 * n_theta + 2)),
+                      "z1": np.zeros((n_blades * n_span, 2 * n_theta + 2)),
+                      "z2": np.zeros((n_blades * n_span, 2 * n_theta + 2)),
+                      "gamma": np.zeros((n_blades, n_span, 2 * n_theta + 2))
                       }
-        self.bladepanels = np.zeros((n_blades, n_span, 4*3))  # empty dict to
+        self.bladepanels = np.zeros((n_blades, n_span, 4 * 3))  # empty dict to
         # store
         # blade geometry
 
