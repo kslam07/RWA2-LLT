@@ -32,11 +32,44 @@ class LiftingLineSolver:
 
         return self.geo.rings
 
-    def _compute_induced_velocity(self):
+    def _velocity_3D_from_vortex_filament(self, core, Segmentcenters):
 
-        # TODO: compute induced velocity of rings on control points
+        r_gamma = self.geo.rings["gamma"]
 
-        raise NotImplementedError
+        x1 = self.geo.rings["x1"]
+        y1 = self.geo.rings["y1"]
+        z1 = self.geo.rings["z1"]
+        x2 = self.geo.rings["x2"]
+        y2 = self.geo.rings["y2"]
+        z2 = self.geo.rings["z2"]
+        xc = Segmentcenters[0]
+        yc = Segmentcenters[1]
+        zc = Segmentcenters[2]
+
+        dist1 = np.sqrt((xc - x1) ** 2 + (yc - y1) ** 2 + (zc - z1) ** 2)
+        dist2 = np.sqrt((xc - x2) ** 2 + (yc - y2) ** 2 + (zc - z2) ** 2)
+
+        dist12_xx = ((yc - y1) * (zc - z2)) - ((zc - z1) * (yc - y2))
+        dist12_xy = ((xc - x1) * (zc - z2)) + ((zc - z1) * (xc - x2))
+        dist12_xz = ((xc - x1) * (yc - y2)) - ((yc - y1) * (xc - x2))
+
+        dist_sq = (dist12_xx ** 2) + (dist12_xy ** 2) + (dist12_xz ** 2)
+
+        dist01 = ((x2-x1) * (xc-x1)) + ((y2-y1) * (yc-y1)) + ((z2-z1) * (zc-z1))
+        dist02 = ((x2-x1) * (xc-x2)) + ((y2-y1) * (yc-y2)) + ((z2-z1) * (zc-z2))
+
+        return
+
+    def _compute_induced_velocity(self, Segmentcenters):
+
+        temp_v = np.zeros(3)
+        V_ind = np.zeros(3)
+
+        core = 0.00001
+
+        temp_v = self._velocity_3D_from_vortex_filament(core, Segmentcenters)
+
+        return V_ind
 
     def _geo_blade(self):
 
