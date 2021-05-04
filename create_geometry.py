@@ -34,8 +34,7 @@ class BladeGeometry:
         self.rTipRatio = 1.0
         self.spacing = 'cosine'
         self.discretize_spanwise()
-        self.filaments=[]
-        self.test=np.zeros((7,n_blades*(n_span-1),2*n_theta+1))
+        self.filaments=np.zeros((7,n_blades*(n_span-1),2*n_theta+1))
         # self.bladepanels = {}  # empty dict to store blade geometry
         
     def discretize_spanwise(self):
@@ -96,7 +95,7 @@ class BladeGeometry:
         return
     
     
-    def comp_ring(self):
+    def compute_ring(self):
         self.discretize_spanwise()
         
         # loop over different blades
@@ -187,33 +186,10 @@ class BladeGeometry:
                             xt+dx, (yt+dy)*np.cos(bladeRot)-(zt+dz)*np.sin(bladeRot),
                         (yt+dy)*np.sin(bladeRot)+(zt+dz)*np.cos(bladeRot),0]))          
 
-                self.test[:, blade*(self.n_span-1)+idx, :] = data_arr.T
+                self.filaments[:, blade*(self.n_span-1)+idx, :] = data_arr.T
 
         return
     
-    def _compute_ring(self):
-        self.discretize_spanwise()
-        for blade in range(self.n_blades):
-            return
-        # TODO: compute bound vortex filaments
-        # sets initial bound vortex filament
-       
-        
-        # compute trailing filaments
-        
-       
-            # TODO: compute trailing vortex filaments
-            
-            #starting point of x, y and z
-               
-            # compute increments dy, dz and dx
-            
-
-            # TODO: rotate all filaments
-    
-            # TODO: redefine in self.rings
-    
-        return
 
     def _compute_cp(self):
         # TODO: compute coordinates
@@ -235,10 +211,3 @@ class BladeGeometry:
             cp=np.column_stack((boundEdge,tangVect,normVect))
             self.cp[blade*(self.n_span-1):blade*(self.n_span-1)+self.n_span-1,:]=cp
         return
-        
-solver = BladeGeometry(1, 6, 10, 3, 5, 5)
-# solver._compute_cp()
-# solver._compute_ring()
-# solver.discretize_blade()
-# solver.comp_ring()
-# solver._compute_cp() # works
