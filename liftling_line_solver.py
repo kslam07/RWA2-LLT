@@ -58,7 +58,12 @@ class LiftingLineSolver:
         R01 = ((x2-x1) * (xc-x1)) + ((y2-y1) * (yc-y1)) + ((z2-z1) * (zc-z1))
         R02 = ((x2-x1) * (xc-x2)) + ((y2-y1) * (yc-y2)) + ((z2-z1) * (zc-z2))
 
-        # implement if conditions
+        ## check if target point is in the vortex filament core,
+        ## and modify to solid body rotation
+
+        R12_sq = np.where(R12_sq < core**2, core**2, R12_sq)
+        R1 = np.where(R1 < core, core, R1)
+        R2 = np.where(R1 < core, core, R2)
 
         K = r_gamma/4/np.pi/R12_sq*(R01/R1 - R02/R2)
 
