@@ -200,7 +200,6 @@ class BladeGeometry:
             bladeRot = 2 * np.pi / self.n_blades*blade
             angle = np.deg2rad(2 - 14 * (1 - segmentCenter))
           
-            #line 135-139 in carlos code
             # bound edge
             boundEdge=np.column_stack((np.zeros(self.n_span-1),segmentCenter*np.cos(bladeRot),segmentCenter*np.sin(bladeRot)))
             # TODO: compute tangential unit vector
