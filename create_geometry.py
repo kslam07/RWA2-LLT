@@ -35,7 +35,7 @@ class BladeGeometry:
         self.spacing = 'cosine'
         self.discretize_spanwise()
         self.filaments=[]
-        
+        self.test=np.zeros((7,n_blades*(n_span-1),2*n_theta+1))
         # self.bladepanels = {}  # empty dict to store blade geometry
         
     def discretize_spanwise(self):
@@ -98,12 +98,15 @@ class BladeGeometry:
     
     def comp_ring(self):
         self.discretize_spanwise()
-        data_arr = np.empty((0,7))
+        
         # loop over different blades
         for blade in range(self.n_blades):
             r = self.span_arr
+            bladeRot = 2 * np.pi / self.n_blades*blade
             
+            # loop             
             for idx,span in enumerate(self.span_arr[:-1]):
+                data_arr = np.empty((0,7))
                 chord1 = 3*(1-span)+1
                 angle1 = np.deg2rad(- 14 * (1 - span) + 2)
 
@@ -117,14 +120,34 @@ class BladeGeometry:
                 
                 # Loop over trailing filaments at x1
                 for index, theta in enumerate(self.theta_arr[:-1]):
-                    xt=chord1*np.sin(-angle1)
-                    yt=span
-                    zt=-chord1*np.cos(angle1)
-                    dx=(self.theta_arr[index+1]-theta)/self.tsr
-                    dy=(np.cos(-self.theta_arr[index+1])-np.cos(-theta))*span
-                    dz=(np.sin(-self.theta_arr[index+1])-np.sin(-theta))*span
-                    data_arr = np.vstack((data_arr,
-                                          [xt+dx, yt+dy, zt+dz, xt, yt, zt, 0]))
+                    if index>0:
+                        xt=data_arr[-1,0]
+                        yt=data_arr[-1,1]
+                        zt=data_arr[-1,2]
+                        dx=(self.theta_arr[index+1]-theta)/self.tsr
+                        dy=(np.cos(-self.theta_arr[index+1])-np.cos(-theta))*span
+                        dz=(np.sin(-self.theta_arr[index+1])-np.sin(-theta))*span
+                        # data_arr = np.vstack((data_arr,
+                        #                       [xt+dx, yt+dy, zt+dz, xt, yt, zt, 0]))
+                        data_arr = np.vstack((data_arr, 
+                            [xt+dx, (yt+dy)*np.cos(bladeRot)-(zt+dz)*np.sin(bladeRot),
+                            (yt+dy)*np.sin(bladeRot)+(zt+dz)*np.cos(bladeRot),
+                            xt, yt*np.cos(bladeRot)-zt*np.sin(bladeRot),
+                        yt*np.sin(bladeRot)+zt*np.cos(bladeRot),0]))
+                    else:
+                        xt=chord1*np.sin(-angle1)
+                        yt=span
+                        zt=-chord1*np.cos(angle1)
+                        dx=(self.theta_arr[index+1]-theta)/self.tsr
+                        dy=(np.cos(-self.theta_arr[index+1])-np.cos(-theta))*span
+                        dz=(np.sin(-self.theta_arr[index+1])-np.sin(-theta))*span
+                        # data_arr = np.vstack((data_arr,
+                        #                       [xt+dx, yt+dy, zt+dz, xt, yt, zt, 0]))
+                        data_arr = np.vstack((data_arr, 
+                            [xt+dx, (yt+dy)*np.cos(bladeRot)-(zt+dz)*np.sin(bladeRot),
+                            (yt+dy)*np.sin(bladeRot)+(zt+dz)*np.cos(bladeRot),
+                            xt, yt*np.cos(bladeRot)-zt*np.sin(bladeRot),
+                        yt*np.sin(bladeRot)+zt*np.cos(bladeRot),0]))
                     
                     
                 # trailing filaments at x2
@@ -135,15 +158,37 @@ class BladeGeometry:
                 
                 # Loop over trailing filaments at x2
                 for index, theta in enumerate(self.theta_arr[:-1]):
-                    xt=chord2*np.sin(-angle2)
-                    yt=r[idx+1]
-                    zt=-chord2*np.cos(angle2)
-                    dx=(self.theta_arr[index+1]-theta)/self.tsr
-                    dy=(np.cos(-self.theta_arr[index+1])-np.cos(-theta))*r[idx+1]
-                    dz=(np.sin(-self.theta_arr[index+1])-np.sin(-theta))*r[idx+1]
-                    data_arr = np.vstack((data_arr,
-                                          [xt, yt, zt, xt+dx, yt+dy, zt+dz, 0]))
-        self.filaments=data_arr    
+                    if index > 0:
+                        xt=data_arr[-1,3]
+                        yt=data_arr[-1,4]
+                        zt=data_arr[-1,5]
+                        dx=(self.theta_arr[index+1]-theta)/self.tsr
+                        dy=(np.cos(-self.theta_arr[index+1])-np.cos(-theta))*r[idx+1]
+                        dz=(np.sin(-self.theta_arr[index+1])-np.sin(-theta))*r[idx+1]
+                        # data_arr = np.vstack((data_arr,
+                                              # [xt, yt, zt, xt+dx, yt+dy, zt+dz, 0]))
+                        data_arr = np.vstack((data_arr, 
+                            [xt, yt*np.cos(bladeRot)-zt*np.sin(bladeRot),
+                            yt*np.sin(bladeRot)+zt*np.cos(bladeRot),
+                            xt+dx, (yt+dy)*np.cos(bladeRot)-(zt+dz)*np.sin(bladeRot),
+                        (yt+dy)*np.sin(bladeRot)+(zt+dz)*np.cos(bladeRot),0]))
+                    else:
+                        xt=chord2*np.sin(-angle2)
+                        yt=r[idx+1]
+                        zt=-chord2*np.cos(angle2)
+                        dx=(self.theta_arr[index+1]-theta)/self.tsr
+                        dy=(np.cos(-self.theta_arr[index+1])-np.cos(-theta))*r[idx+1]
+                        dz=(np.sin(-self.theta_arr[index+1])-np.sin(-theta))*r[idx+1]
+                        # data_arr = np.vstack((data_arr,
+                                              # [xt, yt, zt, xt+dx, yt+dy, zt+dz, 0]))
+                        data_arr = np.vstack((data_arr, 
+                            [xt, yt*np.cos(bladeRot)-zt*np.sin(bladeRot),
+                            yt*np.sin(bladeRot)+zt*np.cos(bladeRot),
+                            xt+dx, (yt+dy)*np.cos(bladeRot)-(zt+dz)*np.sin(bladeRot),
+                        (yt+dy)*np.sin(bladeRot)+(zt+dz)*np.cos(bladeRot),0]))          
+
+                self.test[:, blade*(self.n_span-1)+idx, :] = data_arr.T
+
         return
     
     def _compute_ring(self):
@@ -191,9 +236,9 @@ class BladeGeometry:
             self.cp[blade*(self.n_span-1):blade*(self.n_span-1)+self.n_span-1,:]=cp
         return
         
-solver = BladeGeometry(1, 6, 10, 3, 50, 50)
+solver = BladeGeometry(1, 6, 10, 3, 5, 5)
 # solver._compute_cp()
 # solver._compute_ring()
-solver.discretize_blade()
+# solver.discretize_blade()
 # solver.comp_ring()
 # solver._compute_cp() # works
