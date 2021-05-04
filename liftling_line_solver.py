@@ -67,7 +67,7 @@ class LiftingLineSolver:
         R1 = np.where(R1 < core, core, R1)
         R2 = np.where(R1 < core, core, R2)
 
-        K = r_gamma / 4 / np.pi / R12_sq * (R01 / R1 - R02 / R2)
+        K = (r_gamma/(4 * np.pi * R12_sq)) * ((R01/R1) - (R02/R2))
 
         U = K * R12_xx
         V = K * R12_xy
