@@ -46,28 +46,37 @@ class LiftingLineSolver:
         yc = Segmentcenters[1]
         zc = Segmentcenters[2]
 
-        dist1 = np.sqrt((xc - x1) ** 2 + (yc - y1) ** 2 + (zc - z1) ** 2)
-        dist2 = np.sqrt((xc - x2) ** 2 + (yc - y2) ** 2 + (zc - z2) ** 2)
+        R1 = np.sqrt((xc - x1) ** 2 + (yc - y1) ** 2 + (zc - z1) ** 2)
+        R2 = np.sqrt((xc - x2) ** 2 + (yc - y2) ** 2 + (zc - z2) ** 2)
 
-        dist12_xx = ((yc - y1) * (zc - z2)) - ((zc - z1) * (yc - y2))
-        dist12_xy = ((xc - x1) * (zc - z2)) + ((zc - z1) * (xc - x2))
-        dist12_xz = ((xc - x1) * (yc - y2)) - ((yc - y1) * (xc - x2))
+        R12_xx = ((yc - y1) * (zc - z2)) - ((zc - z1) * (yc - y2))
+        R12_xy = -((xc - x1) * (zc - z2)) + ((zc - z1) * (xc - x2))
+        R12_xz = ((xc - x1) * (yc - y2)) - ((yc - y1) * (xc - x2))
 
-        dist_sq = (dist12_xx ** 2) + (dist12_xy ** 2) + (dist12_xz ** 2)
+        R12_sq = (R12_xx ** 2) + (R12_xy ** 2) + (R12_xz ** 2)
 
-        dist01 = ((x2-x1) * (xc-x1)) + ((y2-y1) * (yc-y1)) + ((z2-z1) * (zc-z1))
-        dist02 = ((x2-x1) * (xc-x2)) + ((y2-y1) * (yc-y2)) + ((z2-z1) * (zc-z2))
+        R01 = ((x2-x1) * (xc-x1)) + ((y2-y1) * (yc-y1)) + ((z2-z1) * (zc-z1))
+        R02 = ((x2-x1) * (xc-x2)) + ((y2-y1) * (yc-y2)) + ((z2-z1) * (zc-z2))
 
-        return
+        # implement if conditions
+
+        K = r_gamma/4/np.pi/R12_sq*(R01/R1 - R02/R2)
+
+        U = K * R12_xx
+        V = K * R12_xy
+        W = K * R12_xz
+
+        return [U, V, W]
 
     def _compute_induced_velocity(self, Segmentcenters):
 
-        temp_v = np.zeros(3)
         V_ind = np.zeros(3)
 
         core = 0.00001
 
         temp_v = self._velocity_3D_from_vortex_filament(core, Segmentcenters)
+
+        V_ind += temp_v
 
         return V_ind
 
@@ -105,7 +114,7 @@ class LiftingLineSolver:
     def _compute_loads_blade(self, V_norm=20, V_tan=10):
 
         V_mag2 = (V_norm**2 + V_tan**2)         # Velocity magnitude squared
-        phi = np.atan(V_norm/V_tan)            # Inflow angle
+        phi = np.atan(V_norm/V_tan)             # Inflow angle
 
         # Get chord and twist
         [chord, twist] = self._geo_blade()
