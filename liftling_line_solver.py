@@ -118,8 +118,8 @@ class LiftingLineSolver:
 
     def _compute_loads_blade(self, V_norm=20, V_tan=10):
 
-        V_mag2 = (V_norm**2 + V_tan**2)         # Velocity magnitude squared
-        phi = np.atan(V_norm/V_tan)             # Inflow angle
+        V_mag2 = (V_norm**2 + V_tan**2)           # Velocity magnitude squared
+        phi = np.arctan(V_norm/V_tan)             # Inflow angle
 
         # Get chord and twist
         [chord, twist] = self._geo_blade()
