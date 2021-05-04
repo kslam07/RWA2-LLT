@@ -22,7 +22,8 @@ class LiftingLineSolver:
         # rotor discretization
         self.geo = geo
         # rotor properties
-        self.u_rot = u_rot
+        self.u_rot = np.array([-u_rot, 0, 0])
+        self.u_inf = geo.v_inf
         self.r_rotor = r_rotor
 
         # solver settings
@@ -34,20 +35,20 @@ class LiftingLineSolver:
         self._polarAirfoil()  # computes minimum/maximum alpha, polynomials for CL and CD alpha approximations
 
     def _compute_circ(self, gamma, weight):
-        self.geo.rings[-1] = self.geo.rings[-1] * (1 - weight) + (weight * gamma)
+        self.geo.filaments[-1] = self.geo.filaments[-1] * (1 - weight) + (weight * gamma)
 
     def _velocity_3D_from_vortex_filament(self, core):
-        r_gamma = self.geo.rings[-1]
+        r_gamma = self.geo.filaments[-1]
 
-        x1 = self.geo.rings[0]
-        y1 = self.geo.rings[2]
-        z1 = self.geo.rings[4]
-        x2 = self.geo.rings[1]
-        y2 = self.geo.rings[3]
-        z2 = self.geo.rings[5]
-        xc = self.geo.cp[0]
-        yc = self.geo.cp[1]
-        zc = self.geo.cp[2]
+        x1 = self.geo.filaments[0]
+        y1 = self.geo.filaments[2]
+        z1 = self.geo.filaments[4]
+        x2 = self.geo.filaments[1]
+        y2 = self.geo.filaments[3]
+        z2 = self.geo.filaments[5]
+        xc = self.geo.cp[:, 0].reshape(-1, 1)
+        yc = self.geo.cp[:, 1].reshape(-1, 1)
+        zc = self.geo.cp[:, 2].reshape(-1, 1)
 
         R1 = np.sqrt((xc - x1) ** 2 + (yc - y1) ** 2 + (zc - z1) ** 2)
         R2 = np.sqrt((xc - x2) ** 2 + (yc - y2) ** 2 + (zc - z2) ** 2)
@@ -73,15 +74,14 @@ class LiftingLineSolver:
         V = K * R12_xy
         W = K * R12_xz
 
-        return [U, V, W]
+        return np.array([U, V, W])
 
     def _compute_induced_velocity(self):
-        V_ind = np.zeros(3)
         core = 0.00001
         temp_v = self._velocity_3D_from_vortex_filament(core)
-        V_ind += temp_v
+        v_ind = np.sum(temp_v, axis=1)
 
-        return V_ind
+        return v_ind
 
     def _geo_blade(self):
         # radial = [0, 0.3, .5, .8, 1]
@@ -99,7 +99,7 @@ class LiftingLineSolver:
         return result
 
     def _polarAirfoil(self):
-        data = pd.read_excel('polar_DU95W180.xlsx').to_numpy()
+        data = np.loadtxt("polar_DU95W180.csv", delimiter=';')
         data = data[3:]
         data = np.array(data, dtype=float)
 
@@ -116,7 +116,7 @@ class LiftingLineSolver:
         # Get chord and twist
         [chord, twist] = self._geo_blade()
 
-        alpha = twist + phi * 180 / np.pi
+        alpha = twist + phi
 
         # apply alpha constraints
         alpha[alpha < self.amin] = self.amin
@@ -133,7 +133,7 @@ class LiftingLineSolver:
 
         Gamma = 0.5 * np.sqrt(V_mag2) * cl * chord
 
-        return [F_norm, F_tan, Gamma]
+        return np.array([F_norm, F_tan, Gamma])
 
     def _initialize_solver(self):
 
