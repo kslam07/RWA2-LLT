@@ -33,8 +33,10 @@ class BladeGeometry:
         self.rRootRatio = 0.2
         self.rTipRatio = 1.0
         self.spacing = 'cosine'
-        self.discretize_spanwise()
         self.filaments=np.zeros((7,n_blades*(n_span-1),2*n_theta+1))
+        self.discretize_spanwise()
+        self.compute_ring()
+        self.discretize_blade()
         # self.bladepanels = {}  # empty dict to store blade geometry
         
     def discretize_spanwise(self):
