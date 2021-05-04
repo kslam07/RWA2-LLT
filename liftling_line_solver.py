@@ -55,8 +55,8 @@ class LiftingLineSolver:
 
         R12_sq = (R12_xx ** 2) + (R12_xy ** 2) + (R12_xz ** 2)
 
-        R01 = ((x2-x1) * (xc-x1)) + ((y2-y1) * (yc-y1)) + ((z2-z1) * (zc-z1))
-        R02 = ((x2-x1) * (xc-x2)) + ((y2-y1) * (yc-y2)) + ((z2-z1) * (zc-z2))
+        R01 = ((x2 - x1) * (xc - x1)) + ((y2 - y1) * (yc - y1)) + ((z2 - z1) * (zc - z1))
+        R02 = ((x2 - x1) * (xc - x2)) + ((y2 - y1) * (yc - y2)) + ((z2 - z1) * (zc - z2))
 
         ## check if target point is in the vortex filament core,
         ## and modify to solid body rotation
