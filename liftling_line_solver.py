@@ -134,3 +134,26 @@ class LiftingLineSolver:
         Gamma = 0.5 * np.sqrt(V_mag2) * cl * chord
 
         return [F_norm, F_tan, Gamma]
+
+    def _initialize_solver(self):
+        uvw_mat = np.zeros((3, self.geo.n_span, self.geo.n_span))
+        gamma_new = np.shape(self.geo.rings[-1].shape)  # initialize gamma array to store new circulation
+
+        # update Gamma given Gamma matrix, weight, and new Gamma
+        self._compute_circ(gamma_new, self.weight)  # updates self.geo itself
+
+        # compute [ui, vi, wi] based on vortex strength and distance
+        # between control point and vortex
+        v_induced = self._compute_induced_velocity()
+        uvw_mat[0] = v_induced[0]  # u
+        uvw_mat[1] = v_induced[1]  # v
+        uvw_mat[2] = v_induced[2]  # w
+
+        return uvw_mat
+
+    def run_solver(self):
+        for i in range(self.n_iter):
+            # todo: update circulation
+
+            # todo: calculate velocity, circulation, control points
+            pass
