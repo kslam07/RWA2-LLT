@@ -136,24 +136,72 @@ class LiftingLineSolver:
         return [F_norm, F_tan, Gamma]
 
     def _initialize_solver(self):
-        uvw_mat = np.zeros((3, self.geo.n_span, self.geo.n_span))
-        gamma_new = np.shape(self.geo.rings[-1].shape)  # initialize gamma array to store new circulation
 
         # update Gamma given Gamma matrix, weight, and new Gamma
-        self._compute_circ(gamma_new, self.weight)  # updates self.geo itself
+        self._compute_circ(gamma=1, weight=self.weight)  # updates self.geo itself
 
         # compute [ui, vi, wi] based on vortex strength and distance
         # between control point and vortex
         v_induced = self._compute_induced_velocity()
-        uvw_mat[0] = v_induced[0]  # u
-        uvw_mat[1] = v_induced[1]  # v
-        uvw_mat[2] = v_induced[2]  # w
 
-        return uvw_mat
+        return v_induced
 
     def run_solver(self):
-        for i in range(self.n_iter):
-            # todo: update circulation
 
-            # todo: calculate velocity, circulation, control points
-            pass
+        # initialize gamma vectors new and old
+        gamma_new = np.ones((len(self.geo.cp), 1))
+        gamma_curr = gamma_new.copy()
+
+        # output variables
+        a = aline = r_R = f_norm = f_tan = gamma = np.ones(len(self.geo.cp))
+
+        # uvw_mat = self._initialize_solver()  # BROKEN
+        dim_1 = self.geo.n_blades * (self.geo.n_span - 1)
+        uvw_mat = np.random.rand(3, dim_1, dim_1)
+
+        for i in range(self.n_iter):
+            # update circulation
+            gamma_curr = gamma_new
+
+            # determine radial position of control point
+            pos_radial = np.sqrt(np.sum(self.geo.cp[:, :3]**2, axis=1)).reshape(-1, 1)
+
+            # calculate velocity, circulation, control points
+            # directly compute total velocity at each control point by mat. vec. product
+            u = uvw_mat[0] @ gamma_curr
+            v = uvw_mat[1] @ gamma_curr
+            w = uvw_mat[2] @ gamma_curr
+
+            # compute perceived velocity by blade element
+            vel_rot = np.cross(self.u_rot, self.geo.cp[:, :3])
+            vel_per = np.array([self.u_inf + u + vel_rot[0], v + vel_rot[1], w + vel_rot[2]])
+
+            # calculate azimuthal and axial velocity
+            azim_dir = np.cross(np.hstack([-1/pos_radial, np.zeros(pos_radial.shape), np.zeros(pos_radial.shape)]),
+                                self.geo.cp[:, :3])
+            u_azim = azim_dir @ vel_per  # TODO: how to do this vectorially
+            u_axial = np.array([1, 0, 0]) @ vel_per
+
+            # calculate loads using BEM
+            blade_loads = self._compute_loads_blade(u_axial, u_azim)
+
+            # update loads and circulation
+            gamma_new = blade_loads[-1]
+            a = -(u + vel_rot[0]) / self.u_inf
+            aline = u_azim / (pos_radial * self.u_rot) - 1
+            r_R = pos_radial / self.r_rotor
+            f_norm = blade_loads[:, 0]
+            f_tan = blade_loads[:, 1]
+            gamma = blade_loads[:, 2]
+
+            # check convergence
+            err_ref = max(self.tol / 10, np.max(np.abs(gamma_new)))  # choose highest value for reference error
+            err = np.max(np.abs(gamma_new - gamma_curr)) / err_ref
+
+            if err < self.tol:
+                break
+
+            # set new estimate of bound circulation
+            gamma_new = (1 - self.weight) * gamma_curr + self.weight * gamma_new
+
+        return [a, aline, r_R, f_norm, f_tan, gamma]
