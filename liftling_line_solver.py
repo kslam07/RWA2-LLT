@@ -110,8 +110,8 @@ class LiftingLineSolver:
         self.fcd = np.polyfit(alphaRad, data[:, 2], 3)
 
     def _compute_loads_blade(self, v_norm=20, v_tan=10):
-        V_mag2 = (v_norm ** 2 + v_tan ** 2)  # Velocity magnitude squared
-        phi = np.arctan(v_norm / v_tan)  # Inflow angle
+        V_mag2 = (v_norm ** 2 + v_tan ** 2)     # Velocity magnitude squared
+        phi = np.arctan(v_norm / v_tan)         # Inflow angle
 
         # Get chord and twist
         [chord, twist] = self._geo_blade()
