@@ -33,23 +33,21 @@ class LiftingLineSolver:
         # airfoil variables
         self._polarAirfoil()  # computes minimum/maximum alpha, polynomials for CL and CD alpha approximations
 
-    def _compute_circ(self, gamma):
-        self.geo.rings["gamma"] = self.geo.rings["gamma"] * (1 - self.weight) + (self.weight * gamma)
+    def _compute_circ(self, gamma, weight):
+        self.geo.rings[-1] = self.geo.rings[-1] * (1 - weight) + (weight * gamma)
 
-        return self.geo.rings
+    def _velocity_3D_from_vortex_filament(self, core):
+        r_gamma = self.geo.rings[-1]
 
-    def _velocity_3D_from_vortex_filament(self, core, segment_centers):
-        r_gamma = self.geo.rings["gamma"]
-
-        x1 = self.geo.rings["x1"]
-        y1 = self.geo.rings["y1"]
-        z1 = self.geo.rings["z1"]
-        x2 = self.geo.rings["x2"]
-        y2 = self.geo.rings["y2"]
-        z2 = self.geo.rings["z2"]
-        xc = segment_centers[0]
-        yc = segment_centers[1]
-        zc = segment_centers[2]
+        x1 = self.geo.rings[0]
+        y1 = self.geo.rings[2]
+        z1 = self.geo.rings[4]
+        x2 = self.geo.rings[1]
+        y2 = self.geo.rings[3]
+        z2 = self.geo.rings[5]
+        xc = self.geo.cp[0]
+        yc = self.geo.cp[1]
+        zc = self.geo.cp[2]
 
         R1 = np.sqrt((xc - x1) ** 2 + (yc - y1) ** 2 + (zc - z1) ** 2)
         R2 = np.sqrt((xc - x2) ** 2 + (yc - y2) ** 2 + (zc - z2) ** 2)
@@ -77,13 +75,10 @@ class LiftingLineSolver:
 
         return [U, V, W]
 
-    def _compute_induced_velocity(self, segment_centers):
+    def _compute_induced_velocity(self):
         V_ind = np.zeros(3)
-
         core = 0.00001
-
-        temp_v = self._velocity_3D_from_vortex_filament(core, segment_centers)
-
+        temp_v = self._velocity_3D_from_vortex_filament(core)
         V_ind += temp_v
 
         return V_ind
