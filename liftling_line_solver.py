@@ -157,7 +157,7 @@ class LiftingLineSolver:
 
         # uvw_mat = self._initialize_solver()  # BROKEN
         dim_1 = self.geo.n_blades * (self.geo.n_span - 1)
-        uvw_mat = np.random.rand(3, dim_1, dim_1)
+        uvw_mat = self._initialize_solver()
 
         for i in range(self.n_iter):
             # update circulation
