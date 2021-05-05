@@ -33,7 +33,6 @@ class BladeGeometry:
         self.rTipRatio = 1.0
         self.spacing = 'cosine'
         self.filaments = np.zeros((7, n_blades * (n_span - 1), 2 * n_theta + 1))
-        self.discretize_spanwise()
         self.compute_ring()
         self.discretize_blade()
         # self.bladepanels = {}  # empty dict to store blade geometry
@@ -60,7 +59,6 @@ class BladeGeometry:
         return
 
     def discretize_blade(self):
-        # TODO: solve control points
         data_arr = np.empty((0, 4 * 3))
         segmentCenter = (self.span_arr + (np.roll(self.span_arr, -1) - self.span_arr) / 2)[:-1]
         self._compute_cp()
@@ -68,8 +66,6 @@ class BladeGeometry:
             bladeRot = 2 * np.pi / self.n_blades * blade
             angle = np.deg2rad(3 * (1 - segmentCenter) + 1 - 14 * (1 - segmentCenter))
 
-            # TODO: solve rings
-            # TODO: solve blade panels
             angle1 = np.deg2rad(- 14 * (1 - self.span_arr) + 2)
             angle2 = np.deg2rad(- 14 * (1 - np.roll(self.span_arr, -1)) + 2)
             chord1 = 3 * (1 - self.span_arr) + 1
@@ -194,7 +190,6 @@ class BladeGeometry:
         return
 
     def _compute_cp(self):
-        # TODO: compute coordinates
         cp = np.zeros((self.n_blades, self.n_span - 1, 9))
         self.discretize_spanwise()
         segmentCenter = (self.span_arr + (np.roll(self.span_arr, -1) - self.span_arr) / 2)[:-1]
@@ -205,10 +200,8 @@ class BladeGeometry:
             # bound edge
             boundEdge = np.column_stack(
                 (np.zeros(self.n_span - 1), segmentCenter * np.cos(bladeRot), segmentCenter * np.sin(bladeRot)))
-            # TODO: compute tangential unit vector
             tangVect = np.column_stack(
                 (np.cos(angle), np.sin(angle) * np.sin(bladeRot), -np.sin(angle) * np.cos(bladeRot)))
-            # TODO: compute normal unit vector 
             normVect = np.column_stack(
                 (-np.sin(angle), np.cos(angle) * np.sin(bladeRot), -np.cos(angle) * np.cos(bladeRot)))
             # Assign to cp
