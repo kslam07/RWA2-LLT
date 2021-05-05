@@ -37,18 +37,23 @@ class LiftingLineSolver:
     def _compute_circ(self, gamma, weight):
         self.geo.filaments[-1] = self.geo.filaments[-1] * (1 - weight) + (weight * gamma)
 
-    def _velocity_3D_from_vortex_filament(self, core):
-        r_gamma = self.geo.filaments[-1]
+    def _velocity_3D_from_vortex_filament(self, cp_i, core):
+        """
+        Computes the induced velocity at a control point due to ALL rings (vectorized part)
+        :param cp_i: single control point
+        :param core: # todo what is this
+        :return: matrix of size (3, (n_blades x (n_span-1))) containing the induced velocities on the control point
+        in u, v, w.
+        """
 
+        r_gamma = self.geo.filaments[-1]  # vortex strength of each filament
         x1 = self.geo.filaments[0]
         y1 = self.geo.filaments[2]
         z1 = self.geo.filaments[4]
         x2 = self.geo.filaments[1]
         y2 = self.geo.filaments[3]
         z2 = self.geo.filaments[5]
-        xc = self.geo.cp[:, 0].reshape(-1, 1)
-        yc = self.geo.cp[:, 1].reshape(-1, 1)
-        zc = self.geo.cp[:, 2].reshape(-1, 1)
+        xc, yc, zc = cp_i
 
         R1 = np.sqrt((xc - x1) ** 2 + (yc - y1) ** 2 + (zc - z1) ** 2)
         R2 = np.sqrt((xc - x2) ** 2 + (yc - y2) ** 2 + (zc - z2) ** 2)
@@ -70,18 +75,22 @@ class LiftingLineSolver:
 
         K = (r_gamma/(4 * np.pi * R12_sq)) * ((R01/R1) - (R02/R2))
 
-        U = K * R12_xx
-        V = K * R12_xy
-        W = K * R12_xz
+        U = np.sum(K * R12_xx, axis=1)
+        V = np.sum(K * R12_xy, axis=1)
+        W = np.sum(K * R12_xz, axis=1)
 
         return np.array([U, V, W])
 
     def _compute_induced_velocity(self):
-        core = 0.00001
-        temp_v = self._velocity_3D_from_vortex_filament(core)
-        v_ind = np.sum(temp_v, axis=1)
+        # create u, v, w matrix to store induced velocities. The matrix consists of elements in which the rows
+        # represent the control points and columns the net effect of a single "ring".
+        uvw_mat = np.zeros((3, self.geo.cp.shape[0], self.geo.filaments.shape[1]))  # three square matrices
+        core = 0.00001  # no idea what this is
+        for i, cp_i in enumerate(self.geo.cp[:, :3]):  # only loop over the coordinates of the control points
+            temp_v = self._velocity_3D_from_vortex_filament(cp_i, core)
+            uvw_mat[:, i, :] = temp_v
 
-        return v_ind
+        return uvw_mat
 
     def _geo_blade(self):
         # radial = [0, 0.3, .5, .8, 1]
@@ -89,11 +98,8 @@ class LiftingLineSolver:
         # twist_dist = [-12, -8, -5, -4, 0.]
 
         pitch = 2  # in deg
-
         chord = 3 * (1 - self.r_rotor) + 1
-
         twist = -14 * (1 - self.r_rotor)  # in deg
-
         result = [chord, np.radians(twist + pitch)]
 
         return result
@@ -154,9 +160,6 @@ class LiftingLineSolver:
 
         # output variables
         a = aline = r_R = f_norm = f_tan = gamma = np.ones(len(self.geo.cp))
-
-        # uvw_mat = self._initialize_solver()  # BROKEN
-        dim_1 = self.geo.n_blades * (self.geo.n_span - 1)
         uvw_mat = self._initialize_solver()
 
         for i in range(self.n_iter):
