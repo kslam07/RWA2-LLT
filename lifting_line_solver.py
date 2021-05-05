@@ -117,7 +117,7 @@ class LiftingLineSolver:
 
     def _compute_loads_blade(self, v_norm, v_tan, r_R):
         V_mag2 = (v_norm ** 2 + v_tan ** 2)     # Velocity magnitude squared
-        phi = np.arctan(v_norm / v_tan)         # Inflow angle
+        phi = np.arctan2(v_norm, v_tan)         # Inflow angle
 
         # Get chord and twist
         [chord, twist] = self._geo_blade(r_R)
@@ -156,7 +156,6 @@ class LiftingLineSolver:
 
         # initialize gamma vectors new and old
         gamma_new = np.ones((len(self.geo.cp), 1))
-        gamma_curr = gamma_new.copy()
 
         # output variables
         a = aline = r_R = f_norm = f_tan = gamma = np.ones(len(self.geo.cp))
@@ -182,8 +181,8 @@ class LiftingLineSolver:
                                  w + vel_rot[:, 2].reshape(-1, 1)])
 
             # calculate azimuthal and axial velocity
-            azim_dir = np.cross(np.hstack([-1/pos_radial, np.zeros(pos_radial.shape), np.zeros(pos_radial.shape)]),
-                                self.geo.cp[:, :3])
+            inv_pos_radial = np.hstack([-1 / pos_radial, np.zeros(pos_radial.shape), np.zeros(pos_radial.shape)])
+            azim_dir = np.cross(inv_pos_radial, self.geo.cp[:, :3])
             u_azim = np.array([azim @ vel for azim, vel in zip(azim_dir, vel_per)])
             u_axial = vel_per @ np.array([1, 0, 0])  # should be the same as [1, 0, 0] @ vel_per (dot product)
 
@@ -200,10 +199,11 @@ class LiftingLineSolver:
             gamma = blade_loads[2]
 
             # check convergence
-            err_ref = max(self.tol / 10, np.max(np.abs(gamma_new)))  # choose highest value for reference error
+            err_ref = max(0.001, np.max(np.abs(gamma_new)))  # choose highest value for reference error
             err = np.max(np.abs(gamma_new - gamma_curr)) / err_ref
 
             if err < self.tol:
+                print("solution converged")
                 break
 
             # set new estimate of bound circulation
