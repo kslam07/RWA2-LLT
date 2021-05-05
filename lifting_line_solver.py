@@ -92,15 +92,15 @@ class LiftingLineSolver:
 
         return uvw_mat
 
-    def _geo_blade(self):
+    def _geo_blade(self, r_R):
         # radial = [0, 0.3, .5, .8, 1]
         # chord_dist = [.05, .04, .03, .02, .015]
         # twist_dist = [-12, -8, -5, -4, 0.]
 
         pitch = 2  # in deg
-        chord = 3 * (1 - self.r_rotor) + 1
-        twist = -14 * (1 - self.r_rotor)  # in deg
-        result = [chord, np.radians(twist + pitch)]
+        chord = 3 * (1 - r_R) + 1
+        twist = -14 * (1 - r_R)  # in deg
+        result = [chord.flatten(), np.radians(twist + pitch).flatten()]
 
         return result
 
@@ -115,12 +115,12 @@ class LiftingLineSolver:
         self.fcl = np.polyfit(alphaRad, data[:, 1], 3)
         self.fcd = np.polyfit(alphaRad, data[:, 2], 3)
 
-    def _compute_loads_blade(self, v_norm=20, v_tan=10):
+    def _compute_loads_blade(self, v_norm, v_tan, r_R):
         V_mag2 = (v_norm ** 2 + v_tan ** 2)     # Velocity magnitude squared
         phi = np.arctan(v_norm / v_tan)         # Inflow angle
 
         # Get chord and twist
-        [chord, twist] = self._geo_blade()
+        [chord, twist] = self._geo_blade(r_R)
 
         alpha = twist + phi
 
@@ -166,7 +166,7 @@ class LiftingLineSolver:
             # update circulation
             gamma_curr = gamma_new
 
-            # determine radial position of control point
+            # determine radial position of control point | todo: check if this is non-dim
             pos_radial = np.sqrt(np.sum(self.geo.cp[:, :3]**2, axis=1)).reshape(-1, 1)
 
             # calculate velocity, circulation, control points
@@ -177,25 +177,27 @@ class LiftingLineSolver:
 
             # compute perceived velocity by blade element
             vel_rot = np.cross(self.u_rot, self.geo.cp[:, :3])
-            vel_per = np.array([self.u_inf + u + vel_rot[0], v + vel_rot[1], w + vel_rot[2]])
+            vel_per = np.hstack([self.u_inf + u + vel_rot[:, 0].reshape(-1, 1),
+                                 v + vel_rot[:, 1].reshape(-1, 1),
+                                 w + vel_rot[:, 2].reshape(-1, 1)])
 
             # calculate azimuthal and axial velocity
             azim_dir = np.cross(np.hstack([-1/pos_radial, np.zeros(pos_radial.shape), np.zeros(pos_radial.shape)]),
                                 self.geo.cp[:, :3])
-            u_azim = azim_dir @ vel_per  # TODO: how to do this vectorially
-            u_axial = np.array([1, 0, 0]) @ vel_per
+            u_azim = np.array([azim @ vel for azim, vel in zip(azim_dir, vel_per)])
+            u_axial = vel_per @ np.array([1, 0, 0])  # should be the same as [1, 0, 0] @ vel_per (dot product)
 
             # calculate loads using BEM
-            blade_loads = self._compute_loads_blade(u_axial, u_azim)
+            blade_loads = self._compute_loads_blade(u_axial, u_azim, pos_radial)
 
             # update loads and circulation
-            gamma_new = blade_loads[-1]
-            a = -(u + vel_rot[0]) / self.u_inf
-            aline = u_azim / (pos_radial * self.u_rot) - 1
+            gamma_new = blade_loads[-1].reshape(-1, 1)
+            a = -(u + vel_rot[:, 0].reshape(-1, 1)) / self.u_inf
+            aline = u_azim / (pos_radial.flatten() * self.u_rot[0]) - 1
             r_R = pos_radial / self.r_rotor
-            f_norm = blade_loads[:, 0]
-            f_tan = blade_loads[:, 1]
-            gamma = blade_loads[:, 2]
+            f_norm = blade_loads[0]
+            f_tan = blade_loads[1]
+            gamma = blade_loads[2]
 
             # check convergence
             err_ref = max(self.tol / 10, np.max(np.abs(gamma_new)))  # choose highest value for reference error
