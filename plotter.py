@@ -64,8 +64,8 @@ ax.set_xlabel('x')
 ax.set_ylabel('y')
 ax.set_zlabel('z')
 
-ax.plot_wireframe(rings[0, :nspan-2, :ntheta-1],rings[1, :nspan-2, :ntheta-1],rings[2, :nspan-2, :ntheta-1], color='green')
-ax.plot_wireframe(rings[0, nspan-1:(2*nspan)-3, :ntheta-1],rings[1, nspan-1:(2*nspan)-3, :ntheta-1],rings[2, nspan-1:(2*nspan)-3, :ntheta-1], color='blue')
-ax.plot_wireframe(rings[0, (2*nspan)-2:(3*nspan)-4, :ntheta-1],rings[1, (2*nspan)-2:(3*nspan)-4, :ntheta-1],rings[2, (2*nspan)-2:(3*nspan)-4, :ntheta-1], color='red')
+ax.plot_wireframe(rings[0, :nspan-1, 1:ntheta+1],rings[1, :nspan-1, 1:ntheta+1],rings[2, :nspan-1, 1:ntheta+1], color='green', cstride=0)
+ax.plot_wireframe(rings[0, nspan:2*nspan, 1:ntheta+1],rings[1, nspan:2*nspan, 1:ntheta+1],rings[2, nspan:2*nspan, 1:ntheta+1], color='blue', cstride=0)
+ax.plot_wireframe(rings[0, (2*nspan)+1:(3*nspan)+1, 1:ntheta+1],rings[1, (2*nspan)+1:(3*nspan)+1, 1:ntheta+1],rings[2, (2*nspan)+1:(3*nspan)+1, 1:ntheta+1], color='red', cstride=0)
 
 plt.show()
