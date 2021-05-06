@@ -6,7 +6,10 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
-solver = BladeGeometry(50, 8, 10, 3, 5, 5)
+nspan = 5
+ntheta = 5
+
+solver = BladeGeometry(50, 8, 10, 3, nspan, ntheta)
 cp = solver.cp
 solver.compute_ring()
 solver.discretize_blade()
@@ -54,3 +57,15 @@ for blade_i, ax in zip(blades_split, axes):
     ax.set_zlabel("z")
     ax.plot_wireframe(x, y, z)
 ax1.plot(solver.filaments[0,0,:],solver.filaments[1,0,:],solver.filaments[2,0,:])
+
+fig = plt.figure()
+ax = Axes3D(fig)
+ax.set_xlabel('x')
+ax.set_ylabel('y')
+ax.set_zlabel('z')
+
+ax.plot_wireframe(rings[0, :nspan-2, :ntheta-1],rings[1, :nspan-2, :ntheta-1],rings[2, :nspan-2, :ntheta-1], color='green')
+ax.plot_wireframe(rings[0, nspan-1:(2*nspan)-3, :ntheta-1],rings[1, nspan-1:(2*nspan)-3, :ntheta-1],rings[2, nspan-1:(2*nspan)-3, :ntheta-1], color='blue')
+ax.plot_wireframe(rings[0, (2*nspan)-2:(3*nspan)-4, :ntheta-1],rings[1, (2*nspan)-2:(3*nspan)-4, :ntheta-1],rings[2, (2*nspan)-2:(3*nspan)-4, :ntheta-1], color='red')
+
+plt.show()
