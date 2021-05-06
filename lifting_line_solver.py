@@ -10,7 +10,6 @@ class LiftingLineSolver:
 
     def __init__(self, geo, u_rot, r_rotor, weight=0.3, tol=1e-6, n_iter=1000):
         """
-
         :param geo: BladeGeometry class
         :param u_rot: rotational velocity [rad/s]
         :param r_rotor: rotor radius [m]
@@ -48,10 +47,10 @@ class LiftingLineSolver:
 
         r_gamma = self.geo.filaments[-1]  # vortex strength of each filament
         x1 = self.geo.filaments[0]
-        y1 = self.geo.filaments[2]
-        z1 = self.geo.filaments[4]
-        x2 = self.geo.filaments[1]
-        y2 = self.geo.filaments[3]
+        y1 = self.geo.filaments[1]
+        z1 = self.geo.filaments[2]
+        x2 = self.geo.filaments[3]
+        y2 = self.geo.filaments[4]
         z2 = self.geo.filaments[5]
         xc, yc, zc = cp_i
 
