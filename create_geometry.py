@@ -119,13 +119,7 @@ class BladeGeometry:
                     dx = (self.theta_arr[index + 1] - theta) / self.tsr
                     dy = (np.cos(-self.theta_arr[index + 1]) - np.cos(-theta)) * r[idx]
                     dz = (np.sin(-self.theta_arr[index + 1]) - np.sin(-theta)) * r[idx]
-                    data_arr = np.vstack((data_arr,
-                                          [xt + dx,
-                                           (yt + dy) * np.cos(bladeRot) - (zt + dz) * np.sin(bladeRot),
-                                           (yt + dy) * np.sin(bladeRot) + (zt + dz) * np.cos(bladeRot),
-                                           xt,
-                                           yt * np.cos(bladeRot) - zt * np.sin(bladeRot),
-                                           yt * np.sin(bladeRot) + zt * np.cos(bladeRot), 0]))
+                    data_arr = np.vstack((data_arr, [xt + dx, (yt + dy), (zt + dz), xt, yt, zt, 0]))
 
                 # trailing filaments at x2
                 chord2 = (3 * (1 - r[idx + 1]) + 1)/self.radius
@@ -141,13 +135,15 @@ class BladeGeometry:
                     dx = (self.theta_arr[index + 1] - theta) / self.tsr
                     dy = (np.cos(-self.theta_arr[index + 1]) - np.cos(-theta)) * r[idx + 1]
                     dz = (np.sin(-self.theta_arr[index + 1]) - np.sin(-theta)) * r[idx + 1]
-                    data_arr = np.vstack((data_arr,
-                                          [xt,
-                                           yt * np.cos(bladeRot) - zt * np.sin(bladeRot),
-                                           yt * np.sin(bladeRot) + zt * np.cos(bladeRot),
-                                           xt + dx,
-                                           (yt + dy) * np.cos(bladeRot) - (zt + dz) * np.sin(bladeRot),
-                                           (yt + dy) * np.sin(bladeRot) + (zt + dz) * np.cos(bladeRot), 0]))
+                    data_arr = np.vstack((data_arr, [xt, yt, zt, xt + dx, (yt + dy), (zt + dz), 0]))
+
+                # rotate the filaments to correspond with blade orientation
+                for filament in data_arr:
+                    temp1 = filament.copy()  # store non-rotated filament for subsequent rotation
+                    filament[1] = temp1[1] * np.cos(bladeRot) - temp1[2] * np.sin(bladeRot)  # y1
+                    filament[2] = temp1[1] * np.sin(bladeRot) + temp1[2] * np.cos(bladeRot)  # z1
+                    filament[4] = temp1[4] * np.cos(bladeRot) - temp1[5] * np.sin(bladeRot)  # y2
+                    filament[5] = temp1[4] * np.sin(bladeRot) + temp1[5] * np.cos(bladeRot)  # z2
 
                 self.filaments[:, blade * (self.n_span - 1) + idx, :] = data_arr.T * self.radius
 
