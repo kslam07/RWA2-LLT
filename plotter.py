@@ -2,28 +2,54 @@
 Plotting function
 """
 from create_geometry import BladeGeometry
-solver=BladeGeometry(50,8,10,3,25,25)
-solver._compute_cp()
-cp=solver.cp
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
+
+solver = BladeGeometry(50, 8, 10, 3, 5, 5)
+cp = solver.cp
 solver.compute_ring()
 solver.discretize_blade()
-blade=solver.bladepanels
-rings=solver.filaments
+blade = solver.bladepanels
+rings = solver.filaments
 
-from matplotlib import pyplot
-from mpl_toolkits.mplot3d import Axes3D
 import random
 
+# fig = plt.figure()
+# ax = Axes3D(fig)
 
-fig = pyplot.figure()
-ax = Axes3D(fig)
 
-
-ax.scatter(rings[0,:24,1:26],rings[1,:24,1:26],rings[2,:24,1:26])
-ax.scatter(rings[3,:24,1:26],rings[4,:24,1:26],rings[5,:24,1:26])
+# ax.scatter(rings[0,:24,1:26],rings[1,:24,1:26],rings[2,:24,1:26])
+# ax.scatter(rings[3,:24,1:26],rings[4,:24,1:26],rings[5,:24,1:26])
 # ax.scatter(rings[0,24:48],rings[1,:24],rings[2,:24])
 # ax.scatter(rings[0,24:48],rings[1,:24],rings[2,:24])
-ax.set_xlabel('x')
-ax.set_ylabel('y')
+# ax.set_xlabel('x')
+# ax.set_ylabel('y')
 # ax.set_zlaebl('z')
-pyplot.show()
+# plt.show()
+
+############################################### PLOT BLADE PANELS ######################################################
+fig = plt.figure(dpi=150)
+ax1 = fig.add_subplot(131, projection="3d")
+ax2 = fig.add_subplot(132, projection="3d")
+ax3 = fig.add_subplot(133, projection="3d")
+axes = [ax1, ax2, ax3]
+
+# split blade panels
+blades_split = np.split(blade, 3)
+
+for blade_i, ax in zip(blades_split, axes):
+    x_le = blade_i[:, 0]
+    y_le = blade_i[:, 1]
+    z_le = blade_i[:, 2]
+    x_te = blade_i[:, 9]
+    y_te = blade_i[:, 10]
+    z_te = blade_i[:, 11]
+    x = np.vstack((x_le, x_te))
+    y = np.vstack((y_le, y_te))
+    z = np.vstack((z_le, z_te))
+    ax.view_init(10, 0)
+    ax.set_xlabel("x")
+    ax.set_ylabel("y")
+    ax.set_zlabel("z")
+    ax.plot_wireframe(x, y, z)
