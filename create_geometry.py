@@ -33,9 +33,10 @@ class BladeGeometry:
         self.rTipRatio = 1.0
         self.spacing = 'cosine'
         self.filaments = np.zeros((7, n_blades * (n_span - 1), 2 * n_theta + 1))
-        self.compute_ring()
+        self.discretize_spanwise()
         self.discretize_blade()
-        # self.bladepanels = {}  # empty dict to store blade geometry
+        self.compute_ring()
+        
 
     def discretize_spanwise(self):
         if self.spacing == 'equal':
@@ -96,8 +97,6 @@ class BladeGeometry:
         return
 
     def compute_ring(self):
-        self.discretize_spanwise()
-
         # loop over different blades
         for blade in range(self.n_blades):
             r = self.span_arr
@@ -191,7 +190,6 @@ class BladeGeometry:
 
     def _compute_cp(self):
         cp = np.zeros((self.n_blades, self.n_span - 1, 9))
-        self.discretize_spanwise()
         segmentCenter = (self.span_arr + (np.roll(self.span_arr, -1) - self.span_arr) / 2)[:-1]
         for blade in range(self.n_blades):
             bladeRot = 2 * np.pi / self.n_blades * blade
@@ -206,5 +204,6 @@ class BladeGeometry:
                 (-np.sin(angle), np.cos(angle) * np.sin(bladeRot), -np.cos(angle) * np.cos(bladeRot)))
             # Assign to cp
             cp = np.column_stack((boundEdge, tangVect, normVect))
+            # return [coord, norm, tang] x,y,z
             self.cp[blade * (self.n_span - 1):blade * (self.n_span - 1) + self.n_span - 1, :] = cp
         return
