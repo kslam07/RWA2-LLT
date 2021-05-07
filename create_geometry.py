@@ -160,3 +160,34 @@ class BladeGeometry:
             self.cp[blade * (self.n_span - 1):blade * (self.n_span - 1) + self.n_span - 1, :] = cp
         return
     
+def doubleRotor(prop_geo,xshift=0,yshift=200,zshift=0):
+    # shift control points
+    rotor2=prop_geo.cp.copy()
+    rotor2[:,0]+=xshift
+    rotor2[:,1]+=yshift
+    rotor2[:,2]+=zshift
+    prop_geo.cp=np.vstack((prop_geo.cp,rotor2))
+    
+    # shift blade 
+    rotor2=prop_geo.bladepanels.copy()
+    rotor2[:,(0,3,6,9)]+=xshift
+    rotor2[:,(1,4,7,10)]+=yshift
+    rotor2[:,(2,5,8,11)]+=zshift
+    prop_geo.bladepanels=np.vstack((prop_geo.bladepanels,rotor2))
+    
+    # shift filaments
+    f=prop_geo.filaments
+    rotor2=prop_geo.filaments.copy()
+    rotor2[(0,3),:,:]+=xshift
+    rotor2[(1,4),:,:]+=yshift
+    rotor2[(2,5),:,:]+=zshift
+    
+    x1=prop_geo.bladepanels=np.vstack((f[0],rotor2[0])).T
+    y1=prop_geo.bladepanels=np.vstack((f[1],rotor2[1])).T
+    z1=prop_geo.bladepanels=np.vstack((f[2],rotor2[2])).T
+    x2=prop_geo.bladepanels=np.vstack((f[3],rotor2[3])).T
+    y2=prop_geo.bladepanels=np.vstack((f[4],rotor2[4])).T
+    z2=prop_geo.bladepanels=np.vstack((f[5],rotor2[5])).T
+    g=prop_geo.bladepanels=np.vstack((f[6],rotor2[6])).T
+    prop_geo.filaments=np.dstack((x1,y1,z1,x2,y2,z2,g)).T
+    return
