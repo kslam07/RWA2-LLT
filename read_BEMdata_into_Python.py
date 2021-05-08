@@ -21,6 +21,8 @@ BEM_CP = np.asarray(f.get('CP'))
 # Close .mat file
 f.close()
 
+plt.close('All')
+
 # Radial distribution alpha and phi
 
 plt.figure()
@@ -29,32 +31,45 @@ plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_phi, 0), BEM_rR.shape)[0, :]*180/np
 plt.xlabel('r/R (-)')
 plt.ylabel('angle (deg)')
 plt.legend()
+plt.grid(True)
 
 # Radial distribution F_tan en F_ax
 
 plt.figure()
-plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Ax[:,0]*BEM_rho, 0), BEM_rR.shape)[0, :],'--', label=r'F_{ax}')
-plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Az[:,0]*BEM_rho, 0), BEM_rR.shape)[0, :],'--', label=r'F_{tan}')
+plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Ax, 0), BEM_rR.shape)[0, :]*BEM_rho[0], label=r'F_{ax}')
+plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Az, 0), BEM_rR.shape)[0, :]*BEM_rho[0],'--', label=r'F_{tan}')
 plt.xlabel('r/R (-)')
 plt.ylabel('F (N)')
 plt.legend()
+plt.grid(True)
 
 # Radial distribution circulation
 
-# figure()
-# # made nondimensional with (np.pi*Uinf**2/(NBlades*Omega)
-# plot(solver.rR,solver.gamma)
-# xlabel('r/R (-)')
-# ylabel('\Gamma (-)')
+plt.figure()
+# made non-dimensional with (np.pi * Uinf**2) / (NBlades*Omega)
+plt.plot(BEM_rR[0, :], BEM_Gamma[0, :], label=r'$\Gamma$')
+plt.xlabel('r/R (-)')
+plt.ylabel(r'$\Gamma$ (-)')
+plt.legend()
+plt.grid(True)
 
 # Radial distribution CT
 
-# plot(solver6.rR, mean(solver6.CT,2), solver6.rR, mean(solver6.Cq,2),'--', solver6.rR, mean(solver6.CN,2),'-.')
-# plot(solver8.rR, mean(solver8.CT,2), solver8.rR, mean(solver8.Cq,2),'--', solver8.rR, mean(solver8.CN,2),'-.')
-# plot(solver10.rR, mean(solver10.CT,2), solver10.rR, mean(solver10.Cq,2),'--', solver10.rR, mean(solver10.CN,2),'-.')
-# xlabel('r/R (-)')
-# ylabel('C (-)')
-# legend('C_T_{,TSR=6}', 'C_Q_{,TSR=6}', 'C_N_{,TSR=6}','C_T_{,TSR=8}', 'C_Q_{,TSR=8}', 'C_N_{,TSR=8}','C_T_{,TSR=10}', 'C_Q_{,TSR=10}', 'C_N_{,TSR=10}','Location','eastoutside')
+plt.figure()
+plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CT, 0), BEM_rR.shape)[0, :], label=r'$C_T$')
+plt.xlabel('r/R (-)')
+plt.ylabel(r'$C_T$ (-)')
+plt.legend()
+plt.grid(True)
+
+# Radial distribution CP
+
+plt.figure()
+plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CP, 0), BEM_rR.shape)[0, :], label=r'$C_P$')
+plt.xlabel('r/R (-)')
+plt.ylabel('$C_P$ (-)')
+plt.legend()
+plt.grid(True)
 
 # Polar plot
 
@@ -72,4 +87,3 @@ plt.legend()
 # colormap('default')
 
 plt.show()
-print('Done')
