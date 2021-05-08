@@ -5,6 +5,7 @@ from create_geometry import BladeGeometry, doubleRotor
 from lifting_line_solver import LiftingLineSolver
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from read_BEMdata_into_Python import read_matlab_data
 import numpy as np
 
 nspan = 25
@@ -118,4 +119,62 @@ ax1.set_zlabel("z")
 ax1.set_xlim(-5, 5)
 ax1.set_ylim(-50, 50)
 ax1.set_zlim(-50, 50)
-ax1.axis("equal")
+ax1.axis("auto")
+
+plt.close('All')
+
+# =============================================================================
+# BEM COMPARISON
+# =============================================================================
+
+[BEM_rR, BEM_alpha, BEM_phi, BEM_rho, BEM_Ax, BEM_Az, BEM_Gamma , BEM_CT, BEM_CP] = read_matlab_data()
+
+# Radial distribution alpha and phi
+
+plt.figure()
+plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_alpha, 0), BEM_rR.shape)[0, :]*180/np.pi, label=r'$\alpha$')
+plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_phi, 0), BEM_rR.shape)[0, :]*180/np.pi, '--', label=r'$\phi$')
+plt.xlabel('r/R (-)')
+plt.ylabel('angle (deg)')
+plt.legend()
+plt.grid(True)
+
+# Radial distribution F_tan en F_ax
+
+plt.figure()
+plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Ax, 0), BEM_rR.shape)[0, :]*BEM_rho[0], label=r'F_{ax}')
+plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Az, 0), BEM_rR.shape)[0, :]*BEM_rho[0],'--', label=r'F_{tan}')
+plt.xlabel('r/R (-)')
+plt.ylabel('F (N)')
+plt.legend()
+plt.grid(True)
+
+# Radial distribution circulation
+
+plt.figure()
+# made non-dimensional with (np.pi * Uinf**2) / (NBlades*Omega)
+plt.plot(BEM_rR[0, :], BEM_Gamma[0, :], label=r'$\Gamma$')
+plt.xlabel('r/R (-)')
+plt.ylabel(r'$\Gamma$ (-)')
+plt.legend()
+plt.grid(True)
+
+# Radial distribution CT
+
+plt.figure()
+plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CT, 0), BEM_rR.shape)[0, :], label=r'$C_T$')
+plt.xlabel('r/R (-)')
+plt.ylabel(r'$C_T$ (-)')
+plt.legend()
+plt.grid(True)
+
+# Radial distribution CP
+
+plt.figure()
+plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CP, 0), BEM_rR.shape)[0, :], label=r'$C_P$')
+plt.xlabel('r/R (-)')
+plt.ylabel('$C_P$ (-)')
+plt.legend()
+plt.grid(True)
+
+# plt.show()
