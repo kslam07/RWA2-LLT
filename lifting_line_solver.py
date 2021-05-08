@@ -3,7 +3,7 @@ Runs frozen vortex wake solver // lifting line theory
 """
 
 import numpy as np
-import pandas as pd
+from scipy.interpolate import interp1d
 
 
 class LiftingLineSolver:
@@ -68,7 +68,7 @@ class LiftingLineSolver:
 
         # check if target point is in the vortex filament core,
         # and modify to solid body rotation
-        R12_sq = np.where(R12_sq < core ** 2, core ** 2, R12_sq)
+        R12_sq = np.where(R12_sq < core ** 2, core ** 2, R12_sq)  # weird statement | it doesnt do anything so it's ok.
         R1 = np.where(R1 < core, core, R1)
         R2 = np.where(R1 < core, core, R2)
 
@@ -111,8 +111,8 @@ class LiftingLineSolver:
         alphaRad = np.radians(data[:, 0])
         self.amax = max(alphaRad)
         self.amin = min(alphaRad)
-        self.fcl = np.polyfit(alphaRad, data[:, 1], 3)
-        self.fcd = np.polyfit(alphaRad, data[:, 2], 3)
+        self.fcl = interp1d(alphaRad, data[:, 1], fill_value=(data[0, 1], data[-1, 1]), bounds_error=False)
+        self.fcd = interp1d(alphaRad, data[:, 2], fill_value=(data[0, 2], data[-1, 2]), bounds_error=False)
 
     def _compute_loads_blade(self, v_norm, v_tan, r_R):
         V_mag2 = (v_norm ** 2 + v_tan ** 2)     # Velocity magnitude squared
@@ -123,12 +123,8 @@ class LiftingLineSolver:
 
         alpha = twist + phi
 
-        # apply alpha constraints
-        alpha[alpha < self.amin] = self.amin
-        alpha[alpha > self.amax] = self.amax
-
-        cl = np.polyval(self.fcl, alpha)
-        cd = np.polyval(self.fcd, alpha)
+        cl = self.fcl(alpha)
+        cd = self.fcd(alpha)
 
         L = 0.5 * V_mag2 * cl * chord
         D = 0.5 * V_mag2 * cd * chord
@@ -143,7 +139,7 @@ class LiftingLineSolver:
     def _initialize_solver(self):
 
         # update Gamma given Gamma matrix, weight, and new Gamma
-        self._compute_circ(gamma=1, weight=self.weight)  # updates self.geo itself
+        self._compute_circ(gamma=1, weight=1)  # updates self.geo itself
 
         # compute [ui, vi, wi] based on vortex strength and distance
         # between control point and vortex
@@ -164,7 +160,7 @@ class LiftingLineSolver:
             # update circulation
             gamma_curr = gamma_new
 
-            # determine radial position of control point | todo: check if this is non-dim
+            # determine radial position of control point
             pos_radial = np.sqrt(np.sum(self.geo.cp[:, :3]**2, axis=1)).reshape(-1, 1)
 
             # calculate velocity, circulation, control points
@@ -186,7 +182,7 @@ class LiftingLineSolver:
             u_axial = vel_per @ np.array([1, 0, 0])  # should be the same as [1, 0, 0] @ vel_per (dot product)
 
             # calculate loads using BEM
-            blade_loads = self._compute_loads_blade(u_axial, u_azim, pos_radial)
+            blade_loads = self._compute_loads_blade(u_axial, u_azim, pos_radial / self.r_rotor)
 
             # update loads and circulation
             gamma_new = blade_loads[-1].reshape(-1, 1)
