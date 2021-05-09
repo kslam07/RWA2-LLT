@@ -31,17 +31,17 @@ def plotDoubleRotor(xshift,yshift,zshift):
     prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta, spacing='cosine')
     doubleRotor(prop_geo,xshift,yshift,zshift)
     rings = prop_geo.filaments
-       
+
     fig = plt.figure()
     ax = Axes3D(fig)
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.set_zlabel('z')
-    
+
     # ax.set_xlim3d(0, 50)
     # ax.set_ylim3d(-50, 200)
     # ax.set_zlim3d(-50, 50)
-    
+
     c=['green','blue','red','green','blue','red']
     for idx in range(nblades*nrotor):
         ax.plot_wireframe(rings[0, idx*(nspan-1):(idx+1)*(nspan-1), :ntheta+1],
@@ -142,8 +142,11 @@ plt.grid(True)
 # Radial distribution F_tan en F_ax
 
 plt.figure()
-plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Ax, 0), BEM_rR.shape)[0, :]*BEM_rho[0], label=r'F_{ax}')
-plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Az, 0), BEM_rR.shape)[0, :]*BEM_rho[0],'--', label=r'F_{tan}')
+plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Ax, 0), BEM_rR.shape)[0, :]*BEM_rho[0], '-r', label=r'$F_{ax}$ BEM')
+plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Az, 0), BEM_rR.shape)[0, :]*BEM_rho[0], '-b', label=r'$F_{tan}$ BEM')
+# Plot one blade of LLM
+plt.plot(data[2][:nspan-1, 0], np.resize(data[3], data[2].shape)[:nspan-1, 0]*BEM_rho[0], '--r', label=r'$F_{ax}$ LLM')
+plt.plot(data[2][:nspan-1, 0], np.resize(data[4], data[2].shape)[:nspan-1, 0]*BEM_rho[0], '--b', label=r'$F_{tan}$ LLM')
 plt.xlabel('r/R (-)')
 plt.ylabel('F (N)')
 plt.legend()
@@ -153,7 +156,8 @@ plt.grid(True)
 
 plt.figure()
 # made non-dimensional with (np.pi * Uinf**2) / (NBlades*Omega)
-plt.plot(BEM_rR[0, :], BEM_Gamma[0, :], label=r'$\Gamma$')
+plt.plot(BEM_rR[0, :], BEM_Gamma[0, :], label=r'$\Gamma$ BEM')
+plt.plot(data[2][:nspan-1, 0], np.resize(data[5], data[2].shape)[:nspan-1, 0], label=r'$\Gamma$ LLM')
 plt.xlabel('r/R (-)')
 plt.ylabel(r'$\Gamma$ (-)')
 plt.legend()
@@ -177,4 +181,4 @@ plt.ylabel('$C_P$ (-)')
 plt.legend()
 plt.grid(True)
 
-# plt.show()
+plt.show()
