@@ -22,6 +22,10 @@ rings = solver.filaments
 prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta, spacing='equal')
 solver = LiftingLineSolver(geo=prop_geo, u_rot=10/50, r_rotor=50, tol=1e-3, n_iter=100)
 data=solver.run_solver()
+omega = solver.geo.tsr*solver.geo.v_inf/solver.geo.radius
+[CP_LLM, CT_LLM] = solver.CP_and_CT(np.resize(data[0], data[2].shape), np.resize(data[1], data[2].shape), data[2],
+                                    np.resize(data[3], data[2].shape), np.resize(data[4], data[2].shape),
+                                    solver.geo.v_inf, omega, solver.geo.radius, nblades)
 
 # =============================================================================
 # Double Rotor Plotting
@@ -156,7 +160,7 @@ plt.grid(True)
 # Radial distribution circulation
 
 # made non-dimensional with (np.pi * Uinf**2) / (NBlades*Omega)
-circ_nondim = (np.pi*solver.geo.v_inf**2)/(solver.geo.tsr*solver.geo.v_inf/solver.geo.radius)
+circ_nondim = (np.pi*solver.geo.v_inf**2)/(nblades*omega)
 
 plt.figure()
 plt.plot(BEM_rR[0, :], BEM_Gamma[0, :], label=r'$\Gamma$ BEM')
@@ -168,13 +172,12 @@ plt.grid(True)
 
 # Radial distribution CT
 
-## STILL NEED TO DIVIDE BY SEGMENT AREA
-area = 1
-CT_LLM = np.resize(data[3], data[2].shape)[:, 0]/(0.5*area*solver.geo.v_inf**2)
+CT_LLM2 = np.resize(data[3], data[2].shape)[:, 0]/(0.5*np.pi*(solver.geo.radius**2)*solver.geo.v_inf**2)
 
 plt.figure()
 plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CT, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_T$ BEM')
 plt.plot(data[2][:nspan-1, 0], CT_LLM[:nspan-1], '--r', label=r'$C_T$ LLM')
+plt.plot(data[2][:nspan-1, 0], CT_LLM2[:nspan-1], '--g', label=r'$C_T$ LLM 2')
 plt.xlabel('r/R (-)')
 plt.ylabel(r'$C_T$ (-)')
 plt.legend()
@@ -182,13 +185,14 @@ plt.grid(True)
 
 # Radial distribution CP
 
-CP_LLM = np.resize(data[3], data[2].shape)[:, 0]*np.resize(data[0], data[2].shape)[:, 0]\
-         *data[2][:, 0]*solver.geo.radius*(solver.geo.tsr*solver.geo.v_inf/solver.geo.radius)\
-         /(0.5*(solver.geo.v_inf**3)*np.pi*solver.geo.radius**2)
+CP_LLM2 = np.resize(data[3], data[2].shape)[:, 0]*np.resize(data[0], data[2].shape)[:, 0]\
+          *data[2][:, 0]*solver.geo.radius*(solver.geo.tsr*solver.geo.v_inf/solver.geo.radius)\
+          /(0.5*(solver.geo.v_inf**3)*np.pi*solver.geo.radius**2)
 
 plt.figure()
 plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CP, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_P$ BEM')
-plt.plot(data[2][:nspan-1, 0], CP_LLM[:nspan-1], '--r', label=r'$C_P$ LLM')
+plt.plot(data[2][:nspan-2, 0], CP_LLM[:nspan-2], '--r', label=r'$C_P$ LLM')
+plt.plot(data[2][:nspan-1, 0], CP_LLM2[:nspan-1], '--g', label=r'$C_P$ LLM 2')
 plt.xlabel('r/R (-)')
 plt.ylabel('$C_P$ (-)')
 plt.legend()

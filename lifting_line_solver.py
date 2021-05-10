@@ -207,3 +207,21 @@ class LiftingLineSolver:
             gamma_new = (1 - self.weight) * gamma_curr + self.weight * gamma_new
 
         return [a, aline, r_R, f_norm, f_tan, gamma, alpha, phi]
+
+    def CP_and_CT(self, a, aline, r_R, f_norm, f_tan, v_inf, omega, radius, nblades):
+
+        CT_LLM = []
+        CP_LLM = []
+        CP_flow = []
+
+        for i in range(len(r_R)-1):
+
+            r_R_temp = (r_R[i] + r_R[i+1]) / 2
+            U_tan = r_R_temp * radius * omega * aline[i]
+            U_norm = v_inf * (1 - a[i])
+            drtemp = (-r_R[i] + r_R[i+1])
+            CT_LLM.append((drtemp * f_norm[i] * nblades) / (0.5 * (v_inf**2) * np.pi * radius))
+            CP_LLM.append((drtemp * f_tan[i] * r_R_temp * omega * nblades) / (0.5 * (v_inf**3) * np.pi))
+            # CP_flow.append((drtemp * (f_norm[i] * U_norm - f_tan[i] * U_tan) * nblades) / (0.5 * (v_inf**3) * np.pi * radius))
+
+        return [CP_LLM, CT_LLM]
