@@ -134,7 +134,7 @@ class LiftingLineSolver:
 
         Gamma = 0.5 * np.sqrt(V_mag2) * cl * chord
 
-        return np.array([F_norm, F_tan, Gamma])
+        return np.array([F_norm, F_tan, Gamma, phi, alpha])
 
     def _initialize_solver(self):
 
@@ -185,13 +185,15 @@ class LiftingLineSolver:
             blade_loads = self._compute_loads_blade(u_axial, u_azim, pos_radial / self.r_rotor)
 
             # update loads and circulation
-            gamma_new = blade_loads[-1].reshape(-1, 1)
+            gamma_new = blade_loads[2].reshape(-1, 1)
             a = -(u + vel_rot[:, 0].reshape(-1, 1)) / self.u_inf
             aline = u_azim / (pos_radial.flatten() * self.u_rot[0]) - 1
             r_R = pos_radial / self.r_rotor
             f_norm = blade_loads[0]
             f_tan = blade_loads[1]
             gamma = blade_loads[2]
+            alpha = blade_loads[3]
+            phi = blade_loads[4]
 
             # check convergence
             err_ref = max(0.001, np.max(np.abs(gamma_new)))  # choose highest value for reference error
@@ -204,4 +206,4 @@ class LiftingLineSolver:
             # set new estimate of bound circulation
             gamma_new = (1 - self.weight) * gamma_curr + self.weight * gamma_new
 
-        return [a, aline, r_R, f_norm, f_tan, gamma]
+        return [a, aline, r_R, f_norm, f_tan, gamma, alpha, phi]
