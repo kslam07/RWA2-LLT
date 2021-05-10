@@ -8,8 +8,8 @@ from mpl_toolkits.mplot3d import Axes3D
 from read_BEMdata_into_Python import read_matlab_data
 import numpy as np
 
-nspan = 25
-ntheta = 25
+nspan = 100
+ntheta = 100
 nblades = 3
 nrotor = 1
 
@@ -19,7 +19,7 @@ solver.compute_ring()
 solver.discretize_blade()
 blade = solver.bladepanels
 rings = solver.filaments
-prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta, spacing='cosine')
+prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta, spacing='equal')
 solver = LiftingLineSolver(geo=prop_geo, u_rot=10/50, r_rotor=50, tol=1e-3, n_iter=100)
 data=solver.run_solver()
 
@@ -133,8 +133,8 @@ plt.close('All')
 plt.figure()
 plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_alpha, 0), BEM_rR.shape)[0, :]*180/np.pi, '-r', label=r'$\alpha$ BEM')
 plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_phi, 0), BEM_rR.shape)[0, :]*180/np.pi, '-b', label=r'$\phi$ BEM')
-plt.plot(data[2][:nspan-1, 0], np.resize(data[6], data[2].shape)[:nspan-1, 0], '--r', label=r'$\alpha$ LLM')
-plt.plot(data[2][:nspan-1, 0], np.resize(data[7], data[2].shape)[:nspan-1, 0], '--b', label=r'$\phi$ LLM')
+plt.plot(data[2][:nspan-1, 0], np.degrees(np.resize(data[6], data[2].shape)[:nspan-1, 0]), '--r', label=r'$\alpha$ LLM')
+plt.plot(data[2][:nspan-1, 0], np.degrees(np.resize(data[7], data[2].shape)[:nspan-1, 0]), '--b', label=r'$\phi$ LLM')
 plt.xlabel('r/R (-)')
 plt.ylabel('angle (deg)')
 plt.legend()
@@ -155,10 +155,12 @@ plt.grid(True)
 
 # Radial distribution circulation
 
-plt.figure()
 # made non-dimensional with (np.pi * Uinf**2) / (NBlades*Omega)
+circ_nondim = (np.pi*solver.geo.v_inf**2)/(solver.geo.tsr*solver.geo.v_inf/solver.geo.radius)
+
+plt.figure()
 plt.plot(BEM_rR[0, :], BEM_Gamma[0, :], label=r'$\Gamma$ BEM')
-plt.plot(data[2][:nspan-1, 0], np.resize(data[5], data[2].shape)[:nspan-1, 0], label=r'$\Gamma$ LLM')
+plt.plot(data[2][:nspan-1, 0], np.resize(data[5], data[2].shape)[:nspan-1, 0]/circ_nondim, label=r'$\Gamma$ LLM')
 plt.xlabel('r/R (-)')
 plt.ylabel(r'$\Gamma$ (-)')
 plt.legend()
@@ -166,8 +168,13 @@ plt.grid(True)
 
 # Radial distribution CT
 
+## STILL NEED TO DIVIDE BY SEGMENT AREA
+
+CT_LLM = np.resize(data[3], data[2].shape)[:, 0]/(0.5*solver.geo.v_inf**2)
+
 plt.figure()
-plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CT, 0), BEM_rR.shape)[0, :], label=r'$C_T$')
+plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CT, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_T$ BEM')
+plt.plot(data[2][:nspan-1, 0], CT_LLM[:nspan-1], '--r', label=r'$C_T$ LLM')
 plt.xlabel('r/R (-)')
 plt.ylabel(r'$C_T$ (-)')
 plt.legend()
@@ -175,8 +182,13 @@ plt.grid(True)
 
 # Radial distribution CP
 
+CP_LLM = np.resize(data[3], data[2].shape)[:, 0]*np.resize(data[0], data[2].shape)[:, 0]\
+         *data[2][:, 0]*solver.geo.radius*(solver.geo.tsr*solver.geo.v_inf/solver.geo.radius)\
+         /(0.5*(solver.geo.v_inf**3)*np.pi*solver.geo.radius**2)
+
 plt.figure()
-plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CP, 0), BEM_rR.shape)[0, :], label=r'$C_P$')
+plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CP, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_P$ BEM')
+plt.plot(data[2][:nspan-1, 0], CP_LLM[:nspan-1], '--r', label=r'$C_P$ LLM')
 plt.xlabel('r/R (-)')
 plt.ylabel('$C_P$ (-)')
 plt.legend()
