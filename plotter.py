@@ -169,8 +169,8 @@ plt.grid(True)
 # Radial distribution CT
 
 ## STILL NEED TO DIVIDE BY SEGMENT AREA
-
-CT_LLM = np.resize(data[3], data[2].shape)[:, 0]/(0.5*solver.geo.v_inf**2)
+area = 1
+CT_LLM = np.resize(data[3], data[2].shape)[:, 0]/(0.5*area*solver.geo.v_inf**2)
 
 plt.figure()
 plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CT, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_T$ BEM')
