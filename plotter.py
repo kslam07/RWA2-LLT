@@ -8,20 +8,16 @@ from mpl_toolkits.mplot3d import Axes3D
 from read_BEMdata_into_Python import read_matlab_data
 import numpy as np
 
-nspan = 100
-ntheta = 100
+nspan = 25
+ntheta = 25
 nblades = 3
 nrotor = 1
 
-solver = BladeGeometry(50, 8, 10, 3, nspan, ntheta,spacing = 'equal')
-cp = solver.cp
-solver.compute_ring()
-solver.discretize_blade()
-blade = solver.bladepanels
-rings = solver.filaments
 prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta, spacing='equal')
+blade = prop_geo.bladepanels
+rings = prop_geo.filaments
 solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.3, tol=1e-3, n_iter=100)
-data=solver.run_solver()
+data = solver.run_solver()
 omega = solver.geo.tsr*solver.geo.v_inf/solver.geo.radius
 [CP_LLM, CT_LLM] = solver.CP_and_CT(np.resize(data[0], data[2].shape), np.resize(data[1], data[2].shape), data[2],
                                     np.resize(data[3], data[2].shape), np.resize(data[4], data[2].shape),
