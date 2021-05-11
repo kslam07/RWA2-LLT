@@ -8,20 +8,16 @@ from mpl_toolkits.mplot3d import Axes3D
 from read_BEMdata_into_Python import read_matlab_data
 import numpy as np
 
-nspan = 100
-ntheta = 100
+nspan = 25
+ntheta = 25
 nblades = 3
 nrotor = 1
 
-solver = BladeGeometry(50, 8, 10, 3, nspan, ntheta,spacing = 'equal')
-cp = solver.cp
-solver.compute_ring()
-solver.discretize_blade()
-blade = solver.bladepanels
-rings = solver.filaments
 prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta, spacing='equal')
+blade = prop_geo.bladepanels
+rings = prop_geo.filaments
 solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.3, tol=1e-3, n_iter=100)
-data=solver.run_solver()
+data = solver.run_solver()
 omega = solver.geo.tsr*solver.geo.v_inf/solver.geo.radius
 [CP_LLM, CT_LLM] = solver.CP_and_CT(np.resize(data[0], data[2].shape), np.resize(data[1], data[2].shape), data[2],
                                     np.resize(data[3], data[2].shape), np.resize(data[4], data[2].shape),
@@ -176,7 +172,7 @@ CT_LLM2 = np.resize(data[3], data[2].shape)[:, 0]/(0.5*np.pi*(solver.geo.radius*
 
 plt.figure()
 plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CT, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_T$ BEM')
-plt.plot(data[2][:nspan-1, 0], CT_LLM[:nspan-1], '--r', label=r'$C_T$ LLM')
+plt.plot(data[2][:nspan-1, 0], CT_LLM[:nspan-1], '--r', label=r'$C_T$ LLM Carlos')
 plt.plot(data[2][:nspan-1, 0], CT_LLM2[:nspan-1], '--g', label=r'$C_T$ LLM 2')
 plt.xlabel('r/R (-)')
 plt.ylabel(r'$C_T$ (-)')
@@ -185,13 +181,13 @@ plt.grid(True)
 
 # Radial distribution CP
 
-CP_LLM2 = np.resize(data[3], data[2].shape)[:, 0]*np.resize(data[0], data[2].shape)[:, 0]\
+CP_LLM2 = np.resize(data[4], data[2].shape)[:, 0]*np.resize(data[0], data[2].shape)[:, 0]\
           *data[2][:, 0]*solver.geo.radius*(solver.geo.tsr*solver.geo.v_inf/solver.geo.radius)\
           /(0.5*(solver.geo.v_inf**3)*np.pi*solver.geo.radius**2)
 
 plt.figure()
 plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CP, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_P$ BEM')
-plt.plot(data[2][:nspan-2, 0], CP_LLM[:nspan-2], '--r', label=r'$C_P$ LLM')
+plt.plot(data[2][:nspan-2, 0], CP_LLM[:nspan-2], '--r', label=r'$C_P$ LLM Carlos')
 plt.plot(data[2][:nspan-1, 0], CP_LLM2[:nspan-1], '--g', label=r'$C_P$ LLM 2')
 plt.xlabel('r/R (-)')
 plt.ylabel('$C_P$ (-)')
