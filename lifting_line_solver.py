@@ -21,7 +21,7 @@ class LiftingLineSolver:
         # rotor discretization
         self.geo = geo
         # rotor properties
-        self.u_rot = np.array([-self.geo.tsr / r_rotor, 0, 0])
+        self.u_rot = np.array([self.geo.tsr / r_rotor * geo.v_inf, 0, 0])
         self.u_inf = geo.v_inf
         self.r_rotor = r_rotor
 
@@ -40,7 +40,7 @@ class LiftingLineSolver:
         """
         Computes the induced velocity at a control point due to ALL rings (vectorized part)
         :param cp_i: single control point
-        :param core: # todo what is this
+        :param core: minimum value for circulation for stability
         :return: matrix of size (3, (n_blades x (n_span-1))) containing the induced velocities on the control point
         in u, v, w.
         """
@@ -68,7 +68,7 @@ class LiftingLineSolver:
 
         # check if target point is in the vortex filament core,
         # and modify to solid body rotation
-        R12_sq = np.where(R12_sq < core ** 2, core ** 2, R12_sq)  # weird statement | it doesnt do anything so it's ok.
+        R12_sq = np.where(R12_sq < core ** 2, core ** 2, R12_sq)
         R1 = np.where(R1 < core, core, R1)
         R2 = np.where(R1 < core, core, R2)
 
@@ -116,7 +116,7 @@ class LiftingLineSolver:
 
     def _compute_loads_blade(self, v_norm, v_tan, r_R):
         V_mag2 = (v_norm ** 2 + v_tan ** 2)     # Velocity magnitude squared
-        phi = np.arctan2(v_norm, v_tan)         # Inflow angle
+        phi = np.arctan(v_norm / v_tan)         # Inflow angle
 
         # Get chord and twist
         [chord, twist] = self._geo_blade(r_R)
@@ -153,7 +153,13 @@ class LiftingLineSolver:
         gamma_new = np.ones((len(self.geo.cp), 1))
 
         # output variables
-        a = aline = r_R = f_norm = f_tan = gamma = np.ones(len(self.geo.cp))
+        a = np.ones(len(self.geo.cp))
+        aline = np.ones(len(self.geo.cp))
+        r_R = np.ones(len(self.geo.cp))
+        f_norm = np.ones(len(self.geo.cp))
+        f_tan = np.ones(len(self.geo.cp))
+        gamma = np.ones(len(self.geo.cp))
+
         uvw_mat = self._initialize_solver()
 
         for i in range(self.n_iter):
@@ -170,7 +176,7 @@ class LiftingLineSolver:
             w = uvw_mat[2] @ gamma_curr
 
             # compute perceived velocity by blade element
-            vel_rot = np.cross(self.u_rot, self.geo.cp[:, :3])
+            vel_rot = np.cross(-self.u_rot, self.geo.cp[:, :3])
             vel_per = np.hstack([self.u_inf + u + vel_rot[:, 0].reshape(-1, 1),
                                  v + vel_rot[:, 1].reshape(-1, 1),
                                  w + vel_rot[:, 2].reshape(-1, 1)])
