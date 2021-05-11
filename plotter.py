@@ -8,8 +8,8 @@ from mpl_toolkits.mplot3d import Axes3D
 from read_BEMdata_into_Python import read_matlab_data
 import numpy as np
 
-nspan = 25
-ntheta = 25
+nspan = 50
+ntheta = 50
 nblades = 3
 nrotor = 1
 
@@ -169,15 +169,17 @@ plt.grid(True)
 # Radial distribution CT
 
 CT_LLM2 = np.resize(data[3], data[2].shape)[:, 0]/(0.5*np.pi*(solver.geo.radius**2)*solver.geo.v_inf**2)
+print('CT Carlos:', np.sum(CT_LLM))
+print('CT:', np.sum(CT_LLM2))
 
-plt.figure()
-plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CT, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_T$ BEM')
-plt.plot(data[2][:nspan-1, 0], CT_LLM[:nspan-1], '--r', label=r'$C_T$ LLM Carlos')
-plt.plot(data[2][:nspan-1, 0], CT_LLM2[:nspan-1], '--g', label=r'$C_T$ LLM 2')
-plt.xlabel('r/R (-)')
-plt.ylabel(r'$C_T$ (-)')
-plt.legend()
-plt.grid(True)
+# plt.figure()
+# plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CT, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_T$ BEM')
+# plt.plot(data[2][:nspan-1, 0], CT_LLM[:nspan-1], '--r', label=r'$C_T$ LLM Carlos')
+# plt.plot(data[2][:nspan-1, 0], CT_LLM2[:nspan-1], '--g', label=r'$C_T$ LLM 2')
+# plt.xlabel('r/R (-)')
+# plt.ylabel(r'$C_T$ (-)')
+# plt.legend()
+# plt.grid(True)
 
 # Radial distribution CP
 
@@ -185,13 +187,16 @@ CP_LLM2 = np.resize(data[4], data[2].shape)[:, 0]*np.resize(data[0], data[2].sha
           *data[2][:, 0]*solver.geo.radius*(solver.geo.tsr*solver.geo.v_inf/solver.geo.radius)\
           /(0.5*(solver.geo.v_inf**3)*np.pi*solver.geo.radius**2)
 
-plt.figure()
-plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CP, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_P$ BEM')
-plt.plot(data[2][:nspan-2, 0], CP_LLM[:nspan-2], '--r', label=r'$C_P$ LLM Carlos')
-plt.plot(data[2][:nspan-1, 0], CP_LLM2[:nspan-1], '--g', label=r'$C_P$ LLM 2')
-plt.xlabel('r/R (-)')
-plt.ylabel('$C_P$ (-)')
-plt.legend()
-plt.grid(True)
+print('CP Carlos:', np.sum(CP_LLM))
+print('CP:', np.sum(CP_LLM2))
+
+# plt.figure()
+# plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CP, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_P$ BEM')
+# plt.plot(data[2][:nspan-2, 0], CP_LLM[:nspan-2], '--r', label=r'$C_P$ LLM Carlos')
+# plt.plot(data[2][:nspan-1, 0], CP_LLM2[:nspan-1], '--g', label=r'$C_P$ LLM 2')
+# plt.xlabel('r/R (-)')
+# plt.ylabel('$C_P$ (-)')
+# plt.legend()
+# plt.grid(True)
 
 plt.show()
