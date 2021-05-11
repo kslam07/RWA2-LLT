@@ -8,7 +8,7 @@ from scipy.interpolate import interp1d
 
 class LiftingLineSolver:
 
-    def __init__(self, geo, u_rot, r_rotor, weight=0.3, tol=1e-6, n_iter=1000):
+    def __init__(self, geo, r_rotor, weight=0.3, tol=1e-6, n_iter=1000):
         """
         :param geo: BladeGeometry class
         :param u_rot: rotational velocity [rad/s]
@@ -21,7 +21,7 @@ class LiftingLineSolver:
         # rotor discretization
         self.geo = geo
         # rotor properties
-        self.u_rot = np.array([-u_rot, 0, 0])
+        self.u_rot = np.array([-self.geo.tsr / r_rotor, 0, 0])
         self.u_inf = geo.v_inf
         self.r_rotor = r_rotor
 
