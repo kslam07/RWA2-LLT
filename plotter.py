@@ -20,7 +20,7 @@ solver.discretize_blade()
 blade = solver.bladepanels
 rings = solver.filaments
 prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta, spacing='equal')
-solver = LiftingLineSolver(geo=prop_geo, u_rot=10/50, r_rotor=50, tol=1e-3, n_iter=100)
+solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.3, tol=1e-3, n_iter=100)
 data=solver.run_solver()
 omega = solver.geo.tsr*solver.geo.v_inf/solver.geo.radius
 [CP_LLM, CT_LLM] = solver.CP_and_CT(np.resize(data[0], data[2].shape), np.resize(data[1], data[2].shape), data[2],
