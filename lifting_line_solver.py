@@ -134,7 +134,7 @@ class LiftingLineSolver:
 
         Gamma = 0.5 * np.sqrt(V_mag2) * cl * chord
 
-        return np.array([F_norm, F_tan, Gamma, phi, alpha])
+        return np.array([F_norm, F_tan, Gamma, alpha, phi])
 
     def _initialize_solver(self):
 
