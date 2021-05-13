@@ -4,11 +4,12 @@ Runs frozen vortex wake solver // lifting line theory
 
 import numpy as np
 from scipy.interpolate import interp1d
+from create_geometry import BladeGeometry
 
 
 class LiftingLineSolver:
 
-    def __init__(self, geo, r_rotor, weight=0.3, tol=1e-6, n_iter=1000):
+    def __init__(self, geo, r_rotor, weight=0.3, tol=1e-6, n_iter=1000, double_rotor=False):
         """
         :param geo: BladeGeometry class
         :param u_rot: rotational velocity [rad/s]
@@ -24,7 +25,8 @@ class LiftingLineSolver:
         self.u_rot = np.array([self.geo.tsr / r_rotor * geo.v_inf, 0, 0])
         self.u_inf = geo.v_inf
         self.r_rotor = r_rotor
-
+        self.double_rotor = double_rotor
+        
         # solver settings
         self.weight = weight
         self.tol = tol
@@ -144,32 +146,39 @@ class LiftingLineSolver:
         return v_induced
 
     def run_solver(self):
-
+        # determine radial position of control point
+        pos_radial = np.sqrt(np.sum(self.geo.cp[:, :3]**2, axis=1)).reshape(-1, 1)
+        
         # initialize gamma vectors new and old
+        if self.double_rotor==True:
+            self.geo.doubleRotor()
+            pos_radial = np.tile(pos_radial,2).reshape((-1,1),order='F')
+            
+        r_R = pos_radial / self.r_rotor    
         gamma_new = np.ones((len(self.geo.cp), 1))
 
         # output variables
-        a = np.ones(len(self.geo.cp))
+        a = np.ones(len(self.geo.cp))*0.33
         aline = np.ones(len(self.geo.cp))
-        r_R = np.ones(len(self.geo.cp))
+        # r_R = np.ones(len(self.geo.cp))
         f_norm = np.ones(len(self.geo.cp))
         f_tan = np.ones(len(self.geo.cp))
         gamma = np.ones(len(self.geo.cp))
         alpha = np.ones(len(self.geo.cp))
         phi = np.ones(len(self.geo.cp))
         err = 1.0
-        a = 0
-
+     
+        
         for i in range(self.n_iter):
-
-            self.geo.a = np.mean(a)
+            # print(i)
+            self.geo.a = np.mean(a[:57])
             self.geo.compute_ring()
+            if self.double_rotor==True:
+                self.geo.doubleRotorUpdate()
+                
             uvw_mat = self._initialize_solver()
             # update circulation
             gamma_curr = gamma_new
-
-            # determine radial position of control point
-            pos_radial = np.sqrt(np.sum(self.geo.cp[:, :3]**2, axis=1)).reshape(-1, 1)
 
             # calculate velocity, circulation, control points
             # directly compute total velocity at each control point by mat. vec. product
@@ -196,7 +205,6 @@ class LiftingLineSolver:
             gamma_new = blade_loads[2].reshape(-1, 1)
             a = -(u + vel_rot[:, 0].reshape(-1, 1)) / self.u_inf
             aline = u_azim / (pos_radial.flatten() * self.u_rot[0]) - 1
-            r_R = pos_radial / self.r_rotor
             f_norm = blade_loads[0]
             f_tan = blade_loads[1]
             gamma = blade_loads[2]

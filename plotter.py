@@ -1,23 +1,27 @@
 """
 Plotting function
 """
-from create_geometry import BladeGeometry, doubleRotor
+from create_geometry import BladeGeometry
 from lifting_line_solver import LiftingLineSolver
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from read_BEMdata_into_Python import read_matlab_data
 import numpy as np
 
-nspan = 25
-ntheta = 40
+nspan = 20
+ntheta = 100
 nblades = 3
 spacing = 'equal'
 nrotor = 2
 
-prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta, spacing=spacing,a=0)
+prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan,
+            n_theta=ntheta, spacing=spacing,a=0,xshift=0,yshift=100,zshift=0)
+
 blade = prop_geo.bladepanels
 rings = prop_geo.filaments
-solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.3, tol=1e-6, n_iter=100)
+solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.5, tol=1e-6, 
+                           n_iter=100,double_rotor=True)
+
 data = solver.run_solver()
 omega = solver.geo.tsr*solver.geo.v_inf/solver.geo.radius
 [CP_LLM, CT_LLM] = solver.CP_and_CT(np.resize(data[0], data[2].shape), np.resize(data[1], data[2].shape), data[2],
@@ -29,8 +33,9 @@ omega = solver.geo.tsr*solver.geo.v_inf/solver.geo.radius
 # =============================================================================
 
 def plotDoubleRotor(xshift,yshift,zshift):
-    prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta, spacing='cosine',a=0)
-    doubleRotor(prop_geo,xshift,yshift,zshift)
+    prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta, spacing='cosine',a=0,
+                             xshift=0,yshift=100,zshift=0)
+    prop_geo.doubleRotor()
     rings = prop_geo.filaments
 
     fig = plt.figure()
@@ -201,6 +206,7 @@ print('CP:', np.sum(CP_LLM2))
 plt.figure()
 plt.plot(BEM_rR[0], BEM_a[0], label=r'a BEM')
 plt.plot(data[2][:nspan-1, 0], data[0][:nspan-1, 0], label=r'a LLM')
+plt.plot(data[2][57:76, 0], data[0][57:76, 0], label=r'a LLM')
 plt.xlabel('r/R (-)')
 plt.ylabel(r'$a$ (-)')
 plt.legend()
