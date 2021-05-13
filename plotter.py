@@ -127,7 +127,7 @@ ax1.axis("auto")
 # =============================================================================
 plt.close('All')
 
-[BEM_rR, BEM_alpha, BEM_phi, BEM_rho, BEM_Ax, BEM_Az, BEM_Gamma , BEM_CT, BEM_CP] = read_matlab_data()
+[BEM_rR, BEM_alpha, BEM_phi, BEM_rho, BEM_Ax, BEM_Az, BEM_Gamma , BEM_CT, BEM_CP, BEM_a, BEM_aline] = read_matlab_data()
 
 # Radial distribution alpha and phi
 
@@ -198,5 +198,10 @@ print('CP:', np.sum(CP_LLM2))
 # plt.ylabel('$C_P$ (-)')
 # plt.legend()
 # plt.grid(True)
-
-plt.show()
+plt.figure()
+plt.plot(BEM_rR[0], BEM_a[0], label=r'a BEM')
+plt.plot(data[2][:nspan-1, 0], data[0][:nspan-1, 0], label=r'a LLM')
+plt.xlabel('r/R (-)')
+plt.ylabel(r'$a$ (-)')
+plt.legend()
+plt.grid(True)

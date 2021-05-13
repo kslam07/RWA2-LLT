@@ -18,11 +18,13 @@ def read_matlab_data():
     BEM_Gamma = np.asarray(f.get('gamma'))
     BEM_CT = np.asarray(f.get('CT'))
     BEM_CP = np.asarray(f.get('CP'))
+    BEM_a = np.asarray(f.get('a'))
+    BEM_aline = np.asarray(f.get('aprime'))
 
     # Close .mat file
     f.close()
 
-    return [BEM_rR, BEM_alpha, BEM_phi, BEM_rho, BEM_Ax, BEM_Az, BEM_Gamma , BEM_CT, BEM_CP]
+    return [BEM_rR, BEM_alpha, BEM_phi, BEM_rho, BEM_Ax, BEM_Az, BEM_Gamma , BEM_CT, BEM_CP, BEM_a, BEM_aline]
 
 # Polar plot
 

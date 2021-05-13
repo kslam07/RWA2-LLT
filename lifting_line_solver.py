@@ -92,10 +92,6 @@ class LiftingLineSolver:
         return uvw_mat
 
     def _geo_blade(self, r_R):
-        # radial = [0, 0.3, .5, .8, 1]
-        # chord_dist = [.05, .04, .03, .02, .015]
-        # twist_dist = [-12, -8, -5, -4, 0.]
-
         pitch = 2  # in deg
         chord = 3 * (1 - r_R) + 1
         twist = -14 * (1 - r_R)  # in deg
@@ -148,7 +144,7 @@ class LiftingLineSolver:
         return v_induced
 
     def run_solver(self):
-        from create_geometry import BladeGeometry, doubleRotor
+
         # initialize gamma vectors new and old
         gamma_new = np.ones((len(self.geo.cp), 1))
 
@@ -159,8 +155,11 @@ class LiftingLineSolver:
         f_norm = np.ones(len(self.geo.cp))
         f_tan = np.ones(len(self.geo.cp))
         gamma = np.ones(len(self.geo.cp))
-
+        alpha = np.ones(len(self.geo.cp))
+        phi = np.ones(len(self.geo.cp))
+        err = 1.0
         a = 0
+
         for i in range(self.n_iter):
 
             self.geo.a = np.mean(a)
@@ -214,6 +213,7 @@ class LiftingLineSolver:
 
             # set new estimate of bound circulation
             gamma_new = (1 - self.weight) * gamma_curr + self.weight * gamma_new
+        print("solution unconverged error: {}".format(err))
         return [a, aline, r_R, f_norm, f_tan, gamma, alpha, phi]
 
     def CP_and_CT(self, a, aline, r_R, f_norm, f_tan, v_inf, omega, radius, nblades):
