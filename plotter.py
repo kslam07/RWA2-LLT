@@ -8,15 +8,16 @@ from mpl_toolkits.mplot3d import Axes3D
 from read_BEMdata_into_Python import read_matlab_data
 import numpy as np
 
-nspan = 50
-ntheta = 50
+nspan = 25
+ntheta = 40
 nblades = 3
-nrotor = 1
+spacing = 'equal'
+nrotor = 2
 
-prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta, spacing='equal')
+prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta, spacing=spacing,a=0)
 blade = prop_geo.bladepanels
 rings = prop_geo.filaments
-solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.3, tol=1e-3, n_iter=100)
+solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.3, tol=1e-6, n_iter=100)
 data = solver.run_solver()
 omega = solver.geo.tsr*solver.geo.v_inf/solver.geo.radius
 [CP_LLM, CT_LLM] = solver.CP_and_CT(np.resize(data[0], data[2].shape), np.resize(data[1], data[2].shape), data[2],
@@ -28,7 +29,7 @@ omega = solver.geo.tsr*solver.geo.v_inf/solver.geo.radius
 # =============================================================================
 
 def plotDoubleRotor(xshift,yshift,zshift):
-    prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta, spacing='cosine')
+    prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta, spacing='cosine',a=0)
     doubleRotor(prop_geo,xshift,yshift,zshift)
     rings = prop_geo.filaments
 
@@ -49,7 +50,7 @@ def plotDoubleRotor(xshift,yshift,zshift):
                       rings[2, idx*(nspan-1):(idx+1)*(nspan-1), :ntheta+1],
                       color=c[idx], cstride=0)
 
-plotDoubleRotor(100,100,100)
+# plotDoubleRotor(0,100,0)
 
 # =============================================================================
 # Rotor performance plots

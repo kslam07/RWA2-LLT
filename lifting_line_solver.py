@@ -111,8 +111,8 @@ class LiftingLineSolver:
         alphaRad = np.radians(data[:, 0])
         self.amax = max(alphaRad)
         self.amin = min(alphaRad)
-        self.fcl = interp1d(alphaRad, data[:, 1], fill_value=(data[0, 1], data[-1, 1]), bounds_error=False)
-        self.fcd = interp1d(alphaRad, data[:, 2], fill_value=(data[0, 2], data[-1, 2]), bounds_error=False)
+        self.fcl = interp1d(alphaRad, data[:, 1], fill_value=(data[0, 1], data[-1, 1]), bounds_error=False, kind='cubic')
+        self.fcd = interp1d(alphaRad, data[:, 2], fill_value=(data[0, 2], data[-1, 2]), bounds_error=False, kind='cubic')
 
     def _compute_loads_blade(self, v_norm, v_tan, r_R):
         V_mag2 = (v_norm ** 2 + v_tan ** 2)     # Velocity magnitude squared
@@ -148,7 +148,7 @@ class LiftingLineSolver:
         return v_induced
 
     def run_solver(self):
-
+        from create_geometry import BladeGeometry, doubleRotor
         # initialize gamma vectors new and old
         gamma_new = np.ones((len(self.geo.cp), 1))
 
@@ -160,9 +160,12 @@ class LiftingLineSolver:
         f_tan = np.ones(len(self.geo.cp))
         gamma = np.ones(len(self.geo.cp))
 
-        uvw_mat = self._initialize_solver()
-
+        a = 0
         for i in range(self.n_iter):
+
+            self.geo.a = np.mean(a)
+            self.geo.compute_ring()
+            uvw_mat = self._initialize_solver()
             # update circulation
             gamma_curr = gamma_new
 
@@ -211,7 +214,6 @@ class LiftingLineSolver:
 
             # set new estimate of bound circulation
             gamma_new = (1 - self.weight) * gamma_curr + self.weight * gamma_new
-
         return [a, aline, r_R, f_norm, f_tan, gamma, alpha, phi]
 
     def CP_and_CT(self, a, aline, r_R, f_norm, f_tan, v_inf, omega, radius, nblades):

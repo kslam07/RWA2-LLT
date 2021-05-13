@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 class BladeGeometry:
 
-    def __init__(self, radius, tsr, v_inf, n_blades, n_span, n_theta, spacing):
+    def __init__(self, radius, tsr, v_inf, n_blades, n_span, n_theta, spacing, a):
         # todo: check whether non-dim of span_arr is needed
         self.radius = radius
         self.tsr = tsr
@@ -16,8 +16,9 @@ class BladeGeometry:
         self.n_blades = n_blades
         self.n_span = n_span
         self.n_theta = n_theta
+        self.a = a
         self.span_arr = np.linspace(0.2, 1.0, n_span)
-        self.theta_arr = np.linspace(0, 2 * np.pi, n_theta)
+        self.theta_arr = np.linspace(0, 16 * np.pi, n_theta)
         self.cp = np.zeros((n_blades * (n_span - 1), 9))  # coord; normal; tangential
         self.bladepanels = np.zeros((n_blades * (n_span-1), 4 * 3))  # empty dict to
 
@@ -106,7 +107,7 @@ class BladeGeometry:
                     xt = data_arr[-1, 0]
                     yt = data_arr[-1, 1]
                     zt = data_arr[-1, 2]
-                    dx = (self.theta_arr[index + 1] - theta) / self.tsr
+                    dx = (self.theta_arr[index + 1] - theta) / (self.tsr*self.v_inf/self.v_inf/(1-self.a))
                     dy = (np.cos(-self.theta_arr[index + 1]) - np.cos(-theta)) * r[idx]
                     dz = (np.sin(-self.theta_arr[index + 1]) - np.sin(-theta)) * r[idx]
                     data_arr = np.vstack((data_arr, [xt + dx, (yt + dy), (zt + dz), xt, yt, zt, 0]))
@@ -122,7 +123,7 @@ class BladeGeometry:
                     xt = data_arr[-1, 3]
                     yt = data_arr[-1, 4]
                     zt = data_arr[-1, 5]
-                    dx = (self.theta_arr[index + 1] - theta) / self.tsr
+                    dx = (self.theta_arr[index + 1] - theta) / (self.tsr*self.v_inf/self.v_inf/(1-self.a))
                     dy = (np.cos(-self.theta_arr[index + 1]) - np.cos(-theta)) * r[idx + 1]
                     dz = (np.sin(-self.theta_arr[index + 1]) - np.sin(-theta)) * r[idx + 1]
                     data_arr = np.vstack((data_arr, [xt, yt, zt, xt + dx, (yt + dy), (zt + dz), 0]))
