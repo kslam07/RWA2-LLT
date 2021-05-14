@@ -12,7 +12,6 @@ class LiftingLineSolver:
     def __init__(self, geo, r_rotor, weight=0.3, tol=1e-6, n_iter=1000, double_rotor=False):
         """
         :param geo: BladeGeometry class
-        :param u_rot: rotational velocity [rad/s]
         :param r_rotor: rotor radius [m]
         :param weight: weighting factor for next step
         :param tol: stopping criteria
@@ -26,7 +25,7 @@ class LiftingLineSolver:
         self.u_inf = geo.v_inf
         self.r_rotor = r_rotor
         self.double_rotor = double_rotor
-        
+
         # solver settings
         self.weight = weight
         self.tol = tol
@@ -74,7 +73,7 @@ class LiftingLineSolver:
         R1 = np.where(R1 < core, core, R1)
         R2 = np.where(R1 < core, core, R2)
 
-        K = (r_gamma/(4 * np.pi * R12_sq)) * ((R01/R1) - (R02/R2))
+        K = (r_gamma / (4 * np.pi * R12_sq)) * ((R01 / R1) - (R02 / R2))
 
         U = np.sum(K * R12_xx, axis=1)
         V = np.sum(K * R12_xy, axis=1)
@@ -93,7 +92,8 @@ class LiftingLineSolver:
 
         return uvw_mat
 
-    def _geo_blade(self, r_R):
+    @staticmethod
+    def _geo_blade(r_R):
         pitch = 2  # in deg
         chord = 3 * (1 - r_R) + 1
         twist = -14 * (1 - r_R)  # in deg
@@ -109,12 +109,14 @@ class LiftingLineSolver:
         alphaRad = np.radians(data[:, 0])
         self.amax = max(alphaRad)
         self.amin = min(alphaRad)
-        self.fcl = interp1d(alphaRad, data[:, 1], fill_value=(data[0, 1], data[-1, 1]), bounds_error=False, kind='cubic')
-        self.fcd = interp1d(alphaRad, data[:, 2], fill_value=(data[0, 2], data[-1, 2]), bounds_error=False, kind='cubic')
+        self.fcl = interp1d(alphaRad, data[:, 1], fill_value=(data[0, 1], data[-1, 1]), bounds_error=False,
+                            kind='cubic')
+        self.fcd = interp1d(alphaRad, data[:, 2], fill_value=(data[0, 2], data[-1, 2]), bounds_error=False,
+                            kind='cubic')
 
     def _compute_loads_blade(self, v_norm, v_tan, r_R):
-        V_mag2 = (v_norm ** 2 + v_tan ** 2)     # Velocity magnitude squared
-        phi = np.arctan(v_norm / v_tan)         # Inflow angle
+        V_mag2 = (v_norm ** 2 + v_tan ** 2)  # Velocity magnitude squared
+        phi = np.arctan(v_norm / v_tan)  # Inflow angle
 
         # Get chord and twist
         [chord, twist] = self._geo_blade(r_R)
@@ -147,18 +149,19 @@ class LiftingLineSolver:
 
     def run_solver(self):
         # determine radial position of control point
-        pos_radial = np.sqrt(np.sum(self.geo.cp[:, :3]**2, axis=1)).reshape(-1, 1)
+        pos_radial = np.sqrt(np.sum(self.geo.cp[:, :3] ** 2, axis=1)).reshape(-1, 1)
         r_R = pos_radial / self.r_rotor
 
         if self.double_rotor:  # copy r/R for second rotor
             self.geo.doubleRotor()
-            pos_radial = np.tile(pos_radial,2).reshape((-1,1),order='F')
+            pos_radial = np.tile(pos_radial, 2).reshape((-1, 1), order='F')
+            cp = self.geo.cp[:, :3].copy()
+            cp[int(len(cp) / 2):, :3] = cp[:int(len(cp) / 2), :3]
 
         # initialize gamma vectors new and old
         gamma_new = np.ones((len(self.geo.cp), 1))
-
         # initialize output variables
-        a = np.ones(len(self.geo.cp))*0.33
+        a = np.ones(len(self.geo.cp)) * 0.33
         aline = np.ones(len(self.geo.cp))
         # r_R = np.ones(len(self.geo.cp))
         f_norm = np.ones(len(self.geo.cp))
@@ -169,11 +172,10 @@ class LiftingLineSolver:
         # initial error
         err = 1.0
 
-
         for i in range(self.n_iter):
 
             # re-discretise wake sheet based on new induction factor
-            self.geo.a = np.mean(a[:57])  # take only the values of the first rotor
+            self.geo.a = np.mean(a[(self.geo.n_span - 1):])  # take only the values of the first rotor
             self.geo.compute_ring()
 
             if self.double_rotor:  # shift filament coords of the 1st rotor
@@ -190,17 +192,30 @@ class LiftingLineSolver:
             v = uvw_mat[1] @ gamma_curr
             w = uvw_mat[2] @ gamma_curr
 
-            # compute perceived velocity by blade element
-            vel_rot = np.cross(-self.u_rot, self.geo.cp[:, :3])
-            vel_per = np.hstack([self.u_inf + u + vel_rot[:, 0].reshape(-1, 1),
-                                 v + vel_rot[:, 1].reshape(-1, 1),
-                                 w + vel_rot[:, 2].reshape(-1, 1)])
+            if self.double_rotor:
+                # compute perceived velocity by blade element
+                vel_rot = np.cross(-self.u_rot, cp)
+                vel_per = np.hstack([self.u_inf + u + vel_rot[:, 0].reshape(-1, 1),
+                                     v + vel_rot[:, 1].reshape(-1, 1),
+                                     w + vel_rot[:, 2].reshape(-1, 1)])
 
-            # calculate azimuthal and axial velocity
-            inv_pos_radial = np.hstack([-1 / pos_radial, np.zeros(pos_radial.shape), np.zeros(pos_radial.shape)])
-            azim_dir = np.cross(inv_pos_radial, self.geo.cp[:, :3])
-            u_azim = np.array([azim @ vel for azim, vel in zip(azim_dir, vel_per)])
-            u_axial = vel_per @ np.array([1, 0, 0])  # should be the same as [1, 0, 0] @ vel_per (dot product)
+                # calculate azimuthal and axial velocity
+                inv_pos_radial = np.hstack([-1 / pos_radial, np.zeros(pos_radial.shape), np.zeros(pos_radial.shape)])
+                azim_dir = np.cross(inv_pos_radial, cp)
+                u_azim = np.array([azim @ vel for azim, vel in zip(azim_dir, vel_per)])
+                u_axial = vel_per @ np.array([1, 0, 0])  # should be the same as [1, 0, 0] @ vel_per (dot product)
+            else:
+                # compute perceived velocity by blade element
+                vel_rot = np.cross(-self.u_rot, self.geo.cp[:, :3])
+                vel_per = np.hstack([self.u_inf + u + vel_rot[:, 0].reshape(-1, 1),
+                                     v + vel_rot[:, 1].reshape(-1, 1),
+                                     w + vel_rot[:, 2].reshape(-1, 1)])
+
+                # calculate azimuthal and axial velocity
+                inv_pos_radial = np.hstack([-1 / pos_radial, np.zeros(pos_radial.shape), np.zeros(pos_radial.shape)])
+                azim_dir = np.cross(inv_pos_radial, self.geo.cp[:, :3])
+                u_azim = np.array([azim @ vel for azim, vel in zip(azim_dir, vel_per)])
+                u_axial = vel_per @ np.array([1, 0, 0])  # should be the same as [1, 0, 0] @ vel_per (dot product)
 
             # calculate loads using BEM
             blade_loads = self._compute_loads_blade(u_axial, u_azim, pos_radial / self.r_rotor)
@@ -225,7 +240,7 @@ class LiftingLineSolver:
 
             # set new estimate of bound circulation
             gamma_new = (1 - self.weight) * gamma_curr + self.weight * gamma_new
-        print("solution unconverged error: {}".format(err))
+        print("solution unconverged error: {}".format(err)) if err < self.tol else None
         return [a, aline, r_R, f_norm, f_tan, gamma, alpha, phi]
 
     def CP_and_CT(self, a, aline, r_R, f_norm, f_tan, v_inf, omega, radius, nblades):
@@ -234,15 +249,15 @@ class LiftingLineSolver:
         CP_LLM = []
         CP_flow = []
 
-        for i in range(len(r_R)-1):
-
-            r_R_temp = (r_R[i] + r_R[i+1]) / 2
+        for i in range(len(r_R) - 1):
+            r_R_temp = (r_R[i] + r_R[i + 1]) / 2
+            drtemp = (-r_R[i] + r_R[i + 1])
+            CT_LLM.append((drtemp * f_norm[i] * nblades) / (0.5 * (v_inf ** 2) * np.pi * radius))
+            CP_LLM.append((drtemp * f_tan[i] * r_R_temp * omega * nblades) / (0.5 * (v_inf ** 3) * np.pi))
+            # another method
             U_tan = r_R_temp * radius * omega * aline[i]
             U_norm = v_inf * (1 - a[i])
-            drtemp = (-r_R[i] + r_R[i+1])
-            CT_LLM.append((drtemp * f_norm[i] * nblades) / (0.5 * (v_inf**2) * np.pi * radius))
-            CP_LLM.append((drtemp * f_tan[i] * r_R_temp * omega * nblades) / (0.5 * (v_inf**3) * np.pi))
-            # CP_flow.append((drtemp * (f_norm[i] * U_norm - f_tan[i] * U_tan) * nblades) / (0.5 * (v_inf**3) *
-            # np.pi * radius))
+            CP_flow.append((drtemp * (f_norm[i] * U_norm - f_tan[i] * U_tan) * nblades) / (0.5 * (v_inf ** 3) *
+                                                                                           np.pi * radius))
 
         return [CP_LLM, CT_LLM]
