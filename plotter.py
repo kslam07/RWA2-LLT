@@ -14,13 +14,11 @@ nblades = 3
 spacing = 'equal'
 nrotor = 2
 
-prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan,
-            n_theta=ntheta, spacing=spacing,a=0,xshift=0,yshift=100,zshift=0)
+prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta, spacing=spacing, a=0)
 
 blade = prop_geo.bladepanels
 rings = prop_geo.filaments
-solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.5, tol=1e-6, 
-                           n_iter=100,double_rotor=True)
+solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.5, tol=1e-6, n_iter=500, double_rotor=False)
 
 data = solver.run_solver()
 omega = solver.geo.tsr*solver.geo.v_inf/solver.geo.radius
@@ -29,38 +27,9 @@ omega = solver.geo.tsr*solver.geo.v_inf/solver.geo.radius
                                     solver.geo.v_inf, omega, solver.geo.radius, nblades)
 
 # =============================================================================
-# Double Rotor Plotting
-# =============================================================================
-
-def plotDoubleRotor(xshift,yshift,zshift):
-    prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta, spacing='cosine',a=0,
-                             xshift=0,yshift=100,zshift=0)
-    prop_geo.doubleRotor()
-    rings = prop_geo.filaments
-
-    fig = plt.figure()
-    ax = Axes3D(fig)
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('z')
-
-    # ax.set_xlim3d(0, 50)
-    # ax.set_ylim3d(-50, 200)
-    # ax.set_zlim3d(-50, 50)
-
-    c=['green','blue','red','green','blue','red']
-    for idx in range(nblades*nrotor):
-        ax.plot_wireframe(rings[0, idx*(nspan-1):(idx+1)*(nspan-1), :ntheta+1],
-                      rings[1, idx*(nspan-1):(idx+1)*(nspan-1), :ntheta+1],
-                      rings[2, idx*(nspan-1):(idx+1)*(nspan-1), :ntheta+1],
-                      color=c[idx], cstride=0)
-
-# plotDoubleRotor(0,100,0)
-
-# =============================================================================
 # Rotor performance plots
 # =============================================================================
-def plottingFunction(solver,prop_geo,data):
+def plottingFunction(prop_geo,data):
     plt.plot(prop_geo.centerPoints,data[-1][:len(prop_geo.centerPoints)])
     plt.show()
     return
@@ -172,7 +141,21 @@ plt.ylabel(r'$\Gamma$ (-)')
 plt.legend()
 plt.grid(True)
 
-# Radial distribution CT
+# INDUCTION FACTORS
+fig, ax = plt.subplots(1, 2, dpi=150)
+ax[0].plot(BEM_rR[0, :], BEM_a[0, :], label="BEM")
+ax[0].plot(data[2][:nspan-1], data[0][:nspan-1], label="Lifting Line")
+ax[1].plot(BEM_rR[0, :], BEM_aline[0, :], label="BEM")
+ax[1].plot(data[2][:nspan-1], data[1][:nspan-1], label="Lifting Line")
+ax[0].set_xlabel("r/R [-]")
+ax[0].set_ylabel("a [-]")
+ax[1].set_xlabel("r/R [-]")
+ax[1].set_ylabel("a' [-]")
+ax[0].grid()
+ax[1].grid()
+ax[0].legend()
+
+# RADIAL DISTRIBUTION CT
 
 CT_LLM2 = np.resize(data[3], data[2].shape)[:, 0]/(0.5*np.pi*(solver.geo.radius**2)*solver.geo.v_inf**2)
 print('CT Carlos:', np.sum(CT_LLM))
@@ -189,11 +172,11 @@ print('CT:', np.sum(CT_LLM2))
 
 # Radial distribution CP
 
-CP_LLM2 = np.resize(data[3], data[2].shape)[:, 0]*np.resize(data[0], data[2].shape)[:, 0]\
-          *data[2][:, 0]*solver.geo.radius*omega/(0.5*(solver.geo.v_inf**3)*np.pi*solver.geo.radius**2)
-
-print('CP Carlos:', np.sum(CP_LLM))
-print('CP:', np.sum(CP_LLM2))
+# CP_LLM2 = np.resize(data[3], data[2].shape)[:, 0]*np.resize(data[0], data[2].shape)[:, 0]\
+#           *data[2][:, 0]*solver.geo.radius*omega/(0.5*(solver.geo.v_inf**3)*np.pi*solver.geo.radius**2)
+#
+# print('CP Carlos:', np.sum(CP_LLM))
+# print('CP:', np.sum(CP_LLM2))
 
 # plt.figure()
 # plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CP, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_P$ BEM')
@@ -203,11 +186,3 @@ print('CP:', np.sum(CP_LLM2))
 # plt.ylabel('$C_P$ (-)')
 # plt.legend()
 # plt.grid(True)
-plt.figure()
-plt.plot(BEM_rR[0], BEM_a[0], label=r'a BEM')
-plt.plot(data[2][:nspan-1, 0], data[0][:nspan-1, 0], label=r'a LLM')
-plt.plot(data[2][57:76, 0], data[0][57:76, 0], label=r'a LLM')
-plt.xlabel('r/R (-)')
-plt.ylabel(r'$a$ (-)')
-plt.legend()
-plt.grid(True)
