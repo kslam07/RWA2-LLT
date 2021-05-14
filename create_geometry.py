@@ -19,7 +19,7 @@ class BladeGeometry:
         self.n_theta = n_theta
         self.a = a
         self.span_arr = np.linspace(0.2, 1.0, n_span)
-        self.theta_arr = np.linspace(0, 16 * np.pi, n_theta)
+        self.theta_arr = np.linspace(0, 100 * np.pi, n_theta)
         self.cp = np.zeros((n_blades * (n_span - 1), 9))  # coord; normal; tangential
         self.bladepanels = np.zeros((n_blades * (n_span-1), 4 * 3))  # empty dict to
         
