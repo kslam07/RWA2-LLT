@@ -148,16 +148,16 @@ class LiftingLineSolver:
     def run_solver(self):
         # determine radial position of control point
         pos_radial = np.sqrt(np.sum(self.geo.cp[:, :3]**2, axis=1)).reshape(-1, 1)
-        
-        # initialize gamma vectors new and old
-        if self.double_rotor==True:
+        r_R = pos_radial / self.r_rotor
+
+        if self.double_rotor:  # copy r/R for second rotor
             self.geo.doubleRotor()
             pos_radial = np.tile(pos_radial,2).reshape((-1,1),order='F')
-            
-        r_R = pos_radial / self.r_rotor    
+
+        # initialize gamma vectors new and old
         gamma_new = np.ones((len(self.geo.cp), 1))
 
-        # output variables
+        # initialize output variables
         a = np.ones(len(self.geo.cp))*0.33
         aline = np.ones(len(self.geo.cp))
         # r_R = np.ones(len(self.geo.cp))
@@ -166,16 +166,20 @@ class LiftingLineSolver:
         gamma = np.ones(len(self.geo.cp))
         alpha = np.ones(len(self.geo.cp))
         phi = np.ones(len(self.geo.cp))
+        # initial error
         err = 1.0
-     
-        
+
+
         for i in range(self.n_iter):
-            # print(i)
-            self.geo.a = np.mean(a[:57])
+
+            # re-discretise wake sheet based on new induction factor
+            self.geo.a = np.mean(a[:57])  # take only the values of the first rotor
             self.geo.compute_ring()
-            if self.double_rotor==True:
+
+            if self.double_rotor:  # shift filament coords of the 1st rotor
                 self.geo.doubleRotorUpdate()
-                
+
+            # compute system of linear eqn. (influence of each filament)
             uvw_mat = self._initialize_solver()
             # update circulation
             gamma_curr = gamma_new
@@ -214,7 +218,7 @@ class LiftingLineSolver:
             # check convergence
             err_ref = max(0.001, np.max(np.abs(gamma_new)))  # choose highest value for reference error
             err = np.max(np.abs(gamma_new - gamma_curr)) / err_ref
-
+            print("iteration: {} | current error: {}".format(i, err))
             if err < self.tol:
                 print("solution converged")
                 break
@@ -238,6 +242,7 @@ class LiftingLineSolver:
             drtemp = (-r_R[i] + r_R[i+1])
             CT_LLM.append((drtemp * f_norm[i] * nblades) / (0.5 * (v_inf**2) * np.pi * radius))
             CP_LLM.append((drtemp * f_tan[i] * r_R_temp * omega * nblades) / (0.5 * (v_inf**3) * np.pi))
-            # CP_flow.append((drtemp * (f_norm[i] * U_norm - f_tan[i] * U_tan) * nblades) / (0.5 * (v_inf**3) * np.pi * radius))
+            # CP_flow.append((drtemp * (f_norm[i] * U_norm - f_tan[i] * U_tan) * nblades) / (0.5 * (v_inf**3) *
+            # np.pi * radius))
 
         return [CP_LLM, CT_LLM]
