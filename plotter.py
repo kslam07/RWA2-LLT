@@ -9,7 +9,7 @@ from read_BEMdata_into_Python import read_matlab_data
 import numpy as np
 
 nspan = 20
-ntheta = 100
+ntheta = 200
 nblades = 3
 spacing = 'equal'
 nrotor = 2
@@ -18,7 +18,7 @@ prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspa
 
 blade = prop_geo.bladepanels
 rings = prop_geo.filaments
-solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.5, tol=1e-6, n_iter=500, double_rotor=False)
+solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.5, tol=1e-8, n_iter=100, double_rotor=False)
 
 data = solver.run_solver()
 omega = solver.geo.tsr * solver.geo.v_inf / solver.geo.radius

@@ -106,16 +106,19 @@ class BladeGeometry:
                 # Define trailing filaments at x1
                 data = [chord1 * np.sin(-angle1), r[idx], -chord1 * np.cos(angle1), 0, r[idx], 0, 0]
                 data_arr = np.vstack((data_arr, data))
-
+                
+                
                 # Loop over trailing filaments at x1
-                for index, theta in enumerate(self.theta_arr[:-1]):
-                    xt = data_arr[-1, 0]
-                    yt = data_arr[-1, 1]
-                    zt = data_arr[-1, 2]
-                    dx = (self.theta_arr[index + 1] - theta) / (self.tsr*self.v_inf/self.v_inf/(1-self.a))
-                    dy = (np.cos(-self.theta_arr[index + 1]) - np.cos(-theta)) * r[idx]
-                    dz = (np.sin(-self.theta_arr[index + 1]) - np.sin(-theta)) * r[idx]
-                    data_arr = np.vstack((data_arr, [xt + dx, (yt + dy), (zt + dz), xt, yt, zt, 0]))
+                xt = chord1 * np.sin(-angle1)
+                yt = r[idx]
+                zt = -chord1 * np.cos(angle1)
+                dx = np.cumsum(np.ones(len(self.theta_arr[:-1]))*self.theta_arr[1] / (self.tsr*self.v_inf/self.v_inf/(1-self.a)))
+                dy = np.cumsum(np.cos(-self.theta_arr[1:])-np.cos(-self.theta_arr[:-1]))*r[idx]
+                dz = np.cumsum(np.sin(-self.theta_arr[1:])-np.sin(-self.theta_arr[:-1]))*r[idx]         
+                data=np.vstack([xt+dx,yt+dy,zt+dz,np.insert((xt+dx)[:-1],0,xt),
+                    np.insert((yt+dy)[:-1],0,yt),np.insert((zt+dz)[:-1],0,zt),np.zeros(len(self.theta_arr[:-1]))]).T
+                data_arr = np.vstack((data_arr,data))
+                
 
                 # trailing filaments at x2
                 chord2 = (3 * (1 - r[idx + 1]) + 1)/self.radius
@@ -123,16 +126,16 @@ class BladeGeometry:
                 data = [0, r[idx + 1], 0, chord2 * np.sin(-angle2), r[idx + 1], -chord2 * np.cos(angle2), 0]
                 data_arr = np.vstack((data_arr, data))
 
-                # Loop over trailing filaments at x2
-                for index, theta in enumerate(self.theta_arr[:-1]):
-                    xt = data_arr[-1, 3]
-                    yt = data_arr[-1, 4]
-                    zt = data_arr[-1, 5]
-                    dx = (self.theta_arr[index + 1] - theta) / (self.tsr*self.v_inf/self.v_inf/(1-self.a))
-                    dy = (np.cos(-self.theta_arr[index + 1]) - np.cos(-theta)) * r[idx + 1]
-                    dz = (np.sin(-self.theta_arr[index + 1]) - np.sin(-theta)) * r[idx + 1]
-                    data_arr = np.vstack((data_arr, [xt, yt, zt, xt + dx, (yt + dy), (zt + dz), 0]))
-
+                xt = chord2*np.sin(-angle2)
+                yt = r[idx+1]
+                zt = -chord2 * np.cos(angle2)
+                dx = np.cumsum(np.ones(len(self.theta_arr[:-1]))*self.theta_arr[1] / (self.tsr*self.v_inf/self.v_inf/(1-self.a)))
+                dy = np.cumsum(np.cos(-self.theta_arr[1:])-np.cos(-self.theta_arr[:-1]))*r[idx+1]
+                dz = np.cumsum(np.sin(-self.theta_arr[1:])-np.sin(-self.theta_arr[:-1]))*r[idx+1]         
+                data=np.vstack([np.insert((xt+dx)[:-1],0,xt),np.insert((yt+dy)[:-1],0,yt),np.insert((zt+dz)[:-1],0,zt),
+                    xt+dx,yt+dy,zt+dz,np.zeros(len(self.theta_arr[:-1]))]).T
+                data_arr = np.vstack((data_arr,data))
+                
                 # rotate the filaments to correspond with blade orientation
                 for filament in data_arr:
                     temp1 = filament.copy()  # store non-rotated filament for subsequent rotation
