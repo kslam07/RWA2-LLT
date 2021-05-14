@@ -8,8 +8,8 @@ from mpl_toolkits.mplot3d import Axes3D
 from read_BEMdata_into_Python import read_matlab_data
 import numpy as np
 
-nspan = 20
-ntheta = 100
+nspan = 25
+ntheta = 150
 nblades = 3
 spacing = 'equal'
 nrotor = 2
@@ -19,7 +19,7 @@ prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspa
 
 blade = prop_geo.bladepanels
 rings = prop_geo.filaments
-solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.5, tol=1e-6,
+solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.3, tol=1e-6,
                            n_iter=100, double_rotor=True)
 
 data = solver.run_solver()
@@ -38,7 +38,7 @@ def plotDoubleRotor():
     prop_geo.doubleRotor()
     rings = prop_geo.filaments
 
-    fig = plt.figure()
+    fig = plt.figure(dpi=150)
     ax = Axes3D(fig)
     ax.set_xlabel('x')
     ax.set_ylabel('y')
@@ -55,7 +55,7 @@ def plotDoubleRotor():
                       rings[2, idx*(nspan-1):(idx+1)*(nspan-1), :ntheta+1],
                       color=c[idx], cstride=0)
 
-# plotDoubleRotor(0,100,0)
+plotDoubleRotor()
 
 # =============================================================================
 # Rotor performance plots
@@ -67,66 +67,6 @@ def plottingFunction(solver,prop_geo,data):
 
 # plottingFunction(solver,prop_geo,data)
 
-import random
-
-# fig = plt.figure()
-# ax = Axes3D(fig)
-
-
-# =============================================================================
-# BLADE VIZ
-# =============================================================================
-fig = plt.figure(dpi=150)
-ax1 = fig.add_subplot(111, projection="3d")
-# ax2 = fig.add_subplot(132, projection="3d")
-# ax3 = fig.add_subplot(133, projection="3d")
-# axes = [ax1, ax2, ax3]
-
-# split blade panels
-blades_split = np.split(blade, 3)
-
-for blade_i in (blades_split):
-    x = blade_i[:, [0, 9]]
-    y = blade_i[:, [1, 10]]
-    z = blade_i[:, [2, 11]]
-
-    ax1.plot_surface(x, y, z, color='k')
-
-# =============================================================================
-# Draw rotor hub
-# =============================================================================
-theta = np.linspace(0, 2 * np.pi)
-y = solver.geo.span_arr[0]*np.cos(theta)*solver.r_rotor
-z = solver.geo.span_arr[0]*np.sin(theta)*solver.r_rotor
-
-ax1.plot(y*0, y, z, color='k')
-
-# =============================================================================
-# WAKE VIZ
-# =============================================================================
-
-ax1.plot_wireframe(rings[0, :nspan-1, :ntheta+1],
-                  rings[1, :nspan-1, :ntheta+1],
-                  rings[2, :nspan-1, :ntheta+1],
-                  color='green', cstride=0)
-ax1.plot_wireframe(rings[0, nspan-1:2*nspan-2, :ntheta+1],
-                  rings[1, nspan-1:2*nspan-2, :ntheta+1],
-                  rings[2, nspan-1:2*nspan-2, :ntheta+1],
-                  color='blue', cstride=0)
-ax1.plot_wireframe(rings[0, (2*nspan-2):, :ntheta+1],
-                  rings[1, (2*nspan-2):, :ntheta+1],
-                  rings[2, (2*nspan-2):, :ntheta+1],
-                  color='red', cstride=0)
-
-ax1.view_init(0, 180)
-ax1.set_xlabel("x")
-ax1.set_ylabel("y")
-ax1.set_zlabel("z")
-ax1.set_xlim(-5, 5)
-ax1.set_ylim(-50, 50)
-ax1.set_zlim(-50, 50)
-ax1.axis("auto")
-
 # =============================================================================
 # DOUBLE ROTOR RESULTS
 # =============================================================================
@@ -136,7 +76,7 @@ plt.close('All')
 
 # Radial distribution alpha and phi
 
-plt.figure()
+plt.figure(dpi=150)
 plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_alpha, 0), BEM_rR.shape)[0, :]*180/np.pi, '-r', label=r'$\alpha$ BEM')
 plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_phi, 0), BEM_rR.shape)[0, :]*180/np.pi, '-b', label=r'$\phi$ BEM')
 plt.plot(data[2][:nspan-1, 0], np.degrees(np.resize(data[6], data[2].shape)[:nspan-1, 0]), '--r',
@@ -154,7 +94,7 @@ plt.grid(True)
 
 # Radial distribution F_tan en F_ax
 
-plt.figure()
+plt.figure(dpi=150)
 plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Ax, 0), BEM_rR.shape)[0, :]*BEM_rho[0], '-r', label=r'$F_{ax}$ BEM')
 plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Az, 0), BEM_rR.shape)[0, :]*BEM_rho[0], '-b', label=r'$F_{tan}$ BEM')
 # Plot one blade of LLM
@@ -176,7 +116,7 @@ plt.grid(True)
 # made non-dimensional with (np.pi * Uinf**2) / (NBlades*Omega)
 circ_nondim = (np.pi*solver.geo.v_inf**2)/(nblades*omega)
 
-plt.figure()
+plt.figure(dpi=150)
 plt.plot(BEM_rR[0, :], BEM_Gamma[0, :], label=r'$\Gamma$ BEM')
 plt.plot(data[2][:nspan-1, 0], np.resize(data[5], data[2].shape)[:nspan-1, 0]/circ_nondim, label=r'$LLM - rotor 1$')
 plt.plot(data[2][-(nspan-1):, 0], np.resize(data[5], data[2].shape)[-(nspan-1):, 0]/circ_nondim,
@@ -210,7 +150,7 @@ ax[1].grid()
 # print('CT Carlos:', np.sum(CT_LLM))
 # print('CT:', np.sum(CT_LLM2))
 
-# plt.figure()
+# plt.figure(dpi=150)
 # plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CT, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_T$ BEM')
 # plt.plot(data[2][:nspan-1, 0], CT_LLM[:nspan-1], '--r', label=r'$C_T$ LLM Carlos')
 # plt.plot(data[2][:nspan-1, 0], CT_LLM2[:nspan-1], '--g', label=r'$C_T$ LLM 2')
@@ -227,7 +167,7 @@ ax[1].grid()
 # print('CP Carlos:', np.sum(CP_LLM))
 # print('CP:', np.sum(CP_LLM2))
 
-# plt.figure()
+# plt.figure(dpi=150)
 # plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CP, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_P$ BEM')
 # plt.plot(data[2][:nspan-2, 0], CP_LLM[:nspan-2], '--r', label=r'$C_P$ LLM Carlos')
 # plt.plot(data[2][:nspan-1, 0], CP_LLM2[:nspan-1], '--g', label=r'$C_P$ LLM 2')
