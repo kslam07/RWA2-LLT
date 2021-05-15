@@ -108,21 +108,24 @@ plt.close('All')
 
 # Radial distribution alpha and phi
 
-plt.figure()
+plt.figure(figsize=(8, 6), dpi=150)
 plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_alpha, 0), BEM_rR.shape)[0, :] * 180 / np.pi, '-r', label=r'$\alpha$ BEM')
 plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_phi, 0), BEM_rR.shape)[0, :] * 180 / np.pi, '-b', label=r'$\phi$ BEM')
 plt.plot(data[2][:nspan - 1, 0], np.degrees(np.resize(data[6], data[2].shape)[:nspan - 1, 0]), '--r',
          label=r'$\alpha$ LLM')
 plt.plot(data[2][:nspan - 1, 0], np.degrees(np.resize(data[7], data[2].shape)[:nspan - 1, 0]), '--b',
          label=r'$\phi$ LLM')
-plt.xlabel('r/R (-)')
-plt.ylabel('angle (deg)')
-plt.legend()
+plt.xlabel('Radial location r/R (-)', fontsize=15)
+plt.ylabel('Angle (deg)', fontsize=15)
+plt.title(r'Radial distribution of $\alpha$ and $\phi$', fontsize=16)
+plt.legend(fontsize=15)
 plt.grid(True)
+#plt.savefig('BEMcomp_figures/alpha_phi.eps', bbox_inches='tight', format='eps')
+plt.savefig('BEMcomp_figures/alpha_phi.eps', format='eps')
 
 # Radial distribution F_tan en F_ax
 
-plt.figure()
+plt.figure(figsize=(8, 6), dpi=150)
 plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Ax, 0), BEM_rR.shape)[0, :] * BEM_rho[0], '-r', label=r'$F_{ax}$ BEM')
 plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Az, 0), BEM_rR.shape)[0, :] * BEM_rho[0], '-b', label=r'$F_{tan}$ BEM')
 # Plot one blade of LLM
@@ -130,23 +133,29 @@ plt.plot(data[2][:nspan - 1, 0], np.resize(data[3], data[2].shape)[:nspan - 1, 0
          label=r'$F_{ax}$ LLM')
 plt.plot(data[2][:nspan - 1, 0], np.resize(data[4], data[2].shape)[:nspan - 1, 0] * BEM_rho[0], '--b',
          label=r'$F_{tan}$ LLM')
-plt.xlabel('r/R (-)')
-plt.ylabel('F (N)')
-plt.legend()
+plt.xlabel('Radial location r/R (-)', fontsize=15)
+plt.ylabel('Force (N)', fontsize=15)
+plt.title(r'Radial distribution of $F_{ax}$ and $F_{az}$', fontsize=16)
+plt.legend(fontsize=15)
 plt.grid(True)
+#plt.savefig('BEMcomp_figures/forces.eps', bbox_inches='tight', format='eps')
+plt.savefig('BEMcomp_figures/forces.eps', format='eps')
 
 # Radial distribution circulation
 
 # made non-dimensional with (np.pi * Uinf**2) / (NBlades*Omega)
 circ_nondim = (np.pi * solver.geo.v_inf ** 2) / (nblades * omega)
 
-plt.figure()
+plt.figure(figsize=(8, 6), dpi=150)
 plt.plot(BEM_rR[0, :], BEM_Gamma[0, :], label=r'$\Gamma$ BEM')
 plt.plot(data[2][:nspan - 1, 0], np.resize(data[5], data[2].shape)[:nspan - 1, 0] / circ_nondim, label=r'$\Gamma$ LLM')
-plt.xlabel('r/R (-)')
-plt.ylabel(r'$\Gamma$ (-)')
-plt.legend()
+plt.xlabel('Radial location r/R (-)', fontsize=15)
+plt.ylabel(r'Circulation $\Gamma$ (-)', fontsize=15)
+plt.title(r'Radial distribution of $\Gamma$', fontsize=16)
+plt.legend(fontsize=15)
 plt.grid(True)
+#plt.savefig('BEMcomp_figures/circulation.eps', bbox_inches='tight', format='eps')
+plt.savefig('BEMcomp_figures/circulation.eps', format='eps')
 
 # INDUCTION FACTORS
 fig, ax = plt.subplots(1, 2, dpi=150)
