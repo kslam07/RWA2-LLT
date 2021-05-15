@@ -203,7 +203,6 @@ class BladeGeometry:
 
     def doubleRotorUpdate(self):
         # shift filaments
-        idxMid = int(np.shape(self.filaments)[1] / 2 - 1)
-        self.filaments[(0, 3), idxMid:, :][:idxMid] += self.xshift
-        self.filaments[(1, 4), idxMid:, :][:idxMid] += self.yshift
-        self.filaments[(2, 5), idxMid:, :][:idxMid] += self.zshift
+        idxMid = int(np.shape(self.filaments)[1] / 2)
+        self.filaments[:, idxMid:] =  self.filaments[:, :idxMid]
+        self.filaments[(1, 4), idxMid:] += self.yshift
