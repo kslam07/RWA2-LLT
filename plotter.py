@@ -178,11 +178,11 @@ print('CT:', np.sum(CT_LLM2))
 
 # Radial distribution CP
 
-# CP_LLM2 = np.resize(data[3], data[2].shape)[:, 0]*np.resize(data[0], data[2].shape)[:, 0]\
-#           *data[2][:, 0]*solver.geo.radius*omega/(0.5*(solver.geo.v_inf**3)*np.pi*solver.geo.radius**2)
-#
-# print('CP Carlos:', np.sum(CP_LLM))
-# print('CP:', np.sum(CP_LLM2))
+CP_LLM2 = np.resize(data[3], data[2].shape)[:, 0]*np.resize(data[0], data[2].shape)[:, 0]\
+          *data[2][:, 0]*solver.geo.radius*omega/(0.5*(solver.geo.v_inf**3)*np.pi*solver.geo.radius**2)
+
+print('CP Carlos:', np.sum(CP_LLM))
+print('CP:', np.sum(CP_LLM2))
 
 # plt.figure()
 # plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CP, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_P$ BEM')
