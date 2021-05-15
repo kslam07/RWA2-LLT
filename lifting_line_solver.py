@@ -9,7 +9,7 @@ from create_geometry import BladeGeometry
 
 class LiftingLineSolver:
 
-    def __init__(self, geo, r_rotor, weight=0.3, tol=1e-6, n_iter=1000, double_rotor=False):
+    def __init__(self, geo, r_rotor, weight=0.3, tol=1e-6, n_iter=1000):
         """
         :param geo: BladeGeometry class
         :param r_rotor: rotor radius [m]
@@ -24,7 +24,7 @@ class LiftingLineSolver:
         self.u_rot = np.array([self.geo.tsr / r_rotor * geo.v_inf, 0, 0])
         self.u_inf = geo.v_inf
         self.r_rotor = r_rotor
-        self.double_rotor = double_rotor
+        self.double_rotor = self.geo.double_rotor
 
         # solver settings
         self.weight = weight
@@ -149,14 +149,14 @@ class LiftingLineSolver:
 
     def run_solver(self):
         # determine radial position of control point
-        pos_radial = np.sqrt(np.sum(self.geo.cp[:, :3] ** 2, axis=1)).reshape(-1, 1)
+        pos_radial = np.sqrt(np.sum(self.geo.cp[:(self.geo.n_blades * (self.geo.n_span - 1)), :3] ** 2,
+                                    axis=1)).reshape(-1, 1)
         r_R = pos_radial / self.r_rotor
 
         if self.double_rotor:  # copy r/R for second rotor
-            self.geo.doubleRotor()
             pos_radial = np.tile(pos_radial, 2).reshape((-1, 1), order='F')
             cp = self.geo.cp[:, :3].copy()
-            cp[int(len(cp) / 2):, :3] = cp[:int(len(cp) / 2), :3]
+            cp[int(len(cp) / 2):, :3] = self.geo._compute_cp(self.geo.phase_diff)[:, :3]
 
         # initialize gamma vectors new and old
         gamma_new = np.ones((len(self.geo.cp), 1))
@@ -176,10 +176,11 @@ class LiftingLineSolver:
 
             # re-discretise wake sheet based on new induction factor
             self.geo.a = np.mean(a[(self.geo.n_span - 1):])  # take only the values of the first rotor
-            self.geo.compute_ring()
 
             if self.double_rotor:  # shift filament coords of the 1st rotor
                 self.geo.doubleRotorUpdate()
+            else:
+                self.geo.filaments = self.geo.compute_ring()
 
             # compute system of linear eqn. (influence of each filament)
             uvw_mat = self._initialize_solver()

@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 
 class BladeGeometry:
 
-    def __init__(self, radius, tsr, v_inf, n_blades, n_span, n_theta, spacing,
-                 a, xshift=0, yshift=100, zshift=0):
+    def __init__(self, radius, tsr, v_inf, n_blades, n_span, n_theta, spacing, phase_diff, a, double_rotor=False,
+                 xshift=0, yshift=100, zshift=0):
         # todo: check whether non-dim of span_arr is needed
         self.radius = radius
         self.tsr = tsr
@@ -20,8 +20,7 @@ class BladeGeometry:
         self.a = a
         self.span_arr = np.linspace(0.2, 1.0, n_span)
         self.theta_arr = np.linspace(0, 30 * np.pi, n_theta)
-        self.cp = np.zeros((n_blades * (n_span - 1), 9))  # coord; normal; tangential
-        self.bladepanels = np.zeros((n_blades * (n_span - 1), 4 * 3))  # empty dict to
+        self.phase_diff = np.radians(phase_diff)
 
         self.xshift = xshift
         self.yshift = yshift
@@ -30,11 +29,30 @@ class BladeGeometry:
         self.rRootRatio = 0.2
         self.rTipRatio = 1.0
         self.spacing = spacing
-        self.filaments = np.zeros((7, n_blades * (n_span - 1), 2 * n_theta + 1))
+        self.double_rotor = double_rotor
+
         self.discretize_spanwise()
-        self.discretize_blade()
-        self.compute_ring()
-        self._compute_cp()
+        # logic to have consistent filaments array size
+        if double_rotor:
+            # initialize arrays that are twice the normal size (twice the single rotor case)
+            n_single_rotor = n_blades * (n_span - 1)
+            self.filaments = np.zeros((7, 2 * n_single_rotor, 2 * n_theta + 1))  # rows are double
+            self.cp = np.zeros((2 * n_single_rotor, 9))  # coord; normal; tangential
+            self.bladepanels = np.zeros((2 * n_single_rotor, 4 * 3))  # empty dict to
+
+            self.cp[:n_single_rotor, :] = self._compute_cp()
+            self.filaments[:, :n_single_rotor] = self.compute_ring()  # second rotor rows are empty
+            self.bladepanels[:n_single_rotor, :] = self.discretize_blade()
+
+            self.doubleRotor()
+            self.doubleRotorUpdate()
+
+        else:
+            self.cp = self._compute_cp()
+            self.bladepanels = self.discretize_blade()
+            self.filaments = self.compute_ring()
+
+
 
     def discretize_spanwise(self):
         if self.spacing == 'equal':
@@ -57,9 +75,11 @@ class BladeGeometry:
         self.span_arr = rsegment
         return
 
-    def discretize_blade(self):
+    def discretize_blade(self, phase_diff=0.0):
+
+        blade_panels = np.zeros((self.n_blades * (self.n_span - 1), 4 * 3))
         for blade in range(self.n_blades):
-            bladeRot = 2 * np.pi / self.n_blades * blade
+            bladeRot = 2 * np.pi / self.n_blades * blade + phase_diff
             angle1 = np.deg2rad(- 14 * (1 - self.span_arr[:-1]) + 2)
             angle2 = np.deg2rad(- 14 * (1 - self.span_arr[1:]) + 2)
             chord1 = (3 * (1 - self.span_arr[:-1]) + 1) / self.radius
@@ -82,20 +102,22 @@ class BladeGeometry:
                                      p4[1] * np.sin(bladeRot) + p4[2] * np.cos(bladeRot)])
 
             # write to bladepanels
-            self.bladepanels[blade * (self.n_span - 1):blade * (self.n_span - 1) + (self.n_span - 1), :] = \
+            blade_panels[blade * (self.n_span - 1):blade * (self.n_span - 1) + (self.n_span - 1), :] = \
                 np.column_stack((p1Rot, p2Rot, p3Rot, p4Rot)) * self.radius
 
-        return
+        return blade_panels
 
-    def compute_ring(self):
+    def compute_ring(self, phase_diff=0.0):
+        # create container array for filaments
+        filaments = np.zeros((7, self.n_blades * (self.n_span - 1), 2 * self.n_theta + 1))
         # loop over different blades
         for blade in range(self.n_blades):
             r = self.span_arr
-            bladeRot = 2 * np.pi / self.n_blades * blade
+            bladeRot = 2 * np.pi / self.n_blades * blade + phase_diff
 
             # loop             
             for idx, span in enumerate(self.span_arr[:-1]):
-                data_arr = np.empty((0, 7))
+                data_arr = np.empty((0, 7))  # rows: thetas | columns
                 chord1 = (3 * (1 - span) + 1) / self.radius
                 angle1 = np.deg2rad(- 14 * (1 - span) + 2)
 
@@ -146,15 +168,17 @@ class BladeGeometry:
                     filament[4] = temp1[4] * np.cos(bladeRot) - temp1[5] * np.sin(bladeRot)  # y2
                     filament[5] = temp1[4] * np.sin(bladeRot) + temp1[5] * np.cos(bladeRot)  # z2
 
-                self.filaments[:, blade * (self.n_span - 1) + idx, :] = data_arr.T * self.radius
+                filaments[:, blade * (self.n_span - 1) + idx, :] = data_arr.T * self.radius
 
-        return
+        return filaments
 
-    def _compute_cp(self):
+    def _compute_cp(self, phase_diff=0.0):
+
+        cp = np.zeros((self.n_blades * (self.n_span - 1), 9))  # coord; normal; tangential
         segmentCenter = self.radius * (self.span_arr + (np.roll(self.span_arr, -1) - self.span_arr) / 2)[:-1]
         self.centerPoints = segmentCenter
         for blade in range(self.n_blades):
-            bladeRot = 2 * np.pi / self.n_blades * blade
+            bladeRot = 2 * np.pi / self.n_blades * blade + phase_diff
             angle = np.deg2rad(2 - 14 * (1 - segmentCenter))
 
             # bound edge
@@ -165,44 +189,24 @@ class BladeGeometry:
             normVect = np.column_stack(
                 (-np.sin(angle), np.cos(angle) * np.sin(bladeRot), -np.cos(angle) * np.cos(bladeRot)))
             # Assign to cp
-            cp = np.column_stack((boundEdge, tangVect, normVect))
+            cp_iblade = np.column_stack((boundEdge, tangVect, normVect))
             # return [coord, norm, tang] x,y,z
-            self.cp[blade * (self.n_span - 1):blade * (self.n_span - 1) + self.n_span - 1, :] = cp
-        return
+            cp[blade * (self.n_span - 1):blade * (self.n_span - 1) + self.n_span - 1, :] = cp_iblade
+        return cp
 
     def doubleRotor(self):
         # shift control points
-        rotor2 = self.cp.copy()
-        rotor2[:, 0] += self.xshift
-        rotor2[:, 1] += self.yshift
-        rotor2[:, 2] += self.zshift
-        self.cp = np.vstack((self.cp, rotor2))
-
-        # shift blade 
-        rotor2 = self.bladepanels.copy()
-        rotor2[:, (0, 3, 6, 9)] += self.xshift
-        rotor2[:, (1, 4, 7, 10)] += self.yshift
-        rotor2[:, (2, 5, 8, 11)] += self.zshift
-        self.bladepanels = np.vstack((self.bladepanels, rotor2))
-
-        # shift filaments
-        f = self.filaments
-        rotor2 = self.filaments.copy()
-        rotor2[(0, 3), :, :] += self.xshift
-        rotor2[(1, 4), :, :] += self.yshift
-        rotor2[(2, 5), :, :] += self.zshift
-
-        x1 = self.bladepanels = np.vstack((f[0], rotor2[0])).T
-        y1 = self.bladepanels = np.vstack((f[1], rotor2[1])).T
-        z1 = self.bladepanels = np.vstack((f[2], rotor2[2])).T
-        x2 = self.bladepanels = np.vstack((f[3], rotor2[3])).T
-        y2 = self.bladepanels = np.vstack((f[4], rotor2[4])).T
-        z2 = self.bladepanels = np.vstack((f[5], rotor2[5])).T
-        g = self.bladepanels = np.vstack((f[6], rotor2[6])).T
-        self.filaments = np.dstack((x1, y1, z1, x2, y2, z2, g)).T
+        idxMid = int(np.shape(self.cp)[0] / 2)
+        self.cp[idxMid:, :] = self._compute_cp(self.phase_diff)
+        self.cp[idxMid:, 1] += self.yshift
+        # shift blade
+        self.bladepanels[idxMid:, :] = self.discretize_blade(self.phase_diff)
+        self.bladepanels[idxMid:, (1, 4, 7, 10)] += self.yshift
 
     def doubleRotorUpdate(self):
         # shift filaments
         idxMid = int(np.shape(self.filaments)[1] / 2)
-        self.filaments[:, idxMid:] =  self.filaments[:, :idxMid]
+        # assume that size filaments [7, 2 * nspan * nblade,2 * (2 * theta)
+        self.filaments[:, :idxMid] = self.compute_ring()
+        self.filaments[:, idxMid:] =  self.compute_ring(self.phase_diff)
         self.filaments[(1, 4), idxMid:] += self.yshift
