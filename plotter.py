@@ -22,7 +22,7 @@ solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.5, tol=1e-8, n_ite
 
 data = solver.run_solver()
 omega = solver.geo.tsr * solver.geo.v_inf / solver.geo.radius
-[CP_LLM, CT_LLM] = solver.CP_and_CT(np.resize(data[0], data[2].shape), np.resize(data[1], data[2].shape), data[2],
+[CP_LLM, CT_LLM, CP_LLM2, CT_LLM2] = solver.CP_and_CT(np.resize(data[0], data[2].shape), np.resize(data[1], data[2].shape), data[2],
                                     np.resize(data[3], data[2].shape), np.resize(data[4], data[2].shape),
                                     solver.geo.v_inf, omega, solver.geo.radius, nblades)
 
@@ -163,9 +163,10 @@ ax[0].legend()
 
 # RADIAL DISTRIBUTION CT
 
-CT_LLM2 = np.resize(data[3], data[2].shape)[:, 0] / (0.5 * np.pi * (solver.geo.radius ** 2) * solver.geo.v_inf ** 2)
+CT_LLM_me = np.resize(data[3], data[2].shape)[:, 0] / (0.5 * np.pi * (solver.geo.radius ** 2) * solver.geo.v_inf ** 2)
 print('CT Carlos:', np.sum(CT_LLM))
-print('CT:', np.sum(CT_LLM2))
+print('CT Flo:', np.sum(CT_LLM2))
+print('CT Me:', np.sum(CT_LLM_me))
 
 # plt.figure()
 # plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CT, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_T$ BEM')
@@ -178,11 +179,12 @@ print('CT:', np.sum(CT_LLM2))
 
 # Radial distribution CP
 
-CP_LLM2 = np.resize(data[3], data[2].shape)[:, 0]*np.resize(data[0], data[2].shape)[:, 0]\
+CP_LLM_me = np.resize(data[3], data[2].shape)[:, 0]*np.resize(data[0], data[2].shape)[:, 0]\
           *data[2][:, 0]*solver.geo.radius*omega/(0.5*(solver.geo.v_inf**3)*np.pi*solver.geo.radius**2)
 
 print('CP Carlos:', np.sum(CP_LLM))
-print('CP:', np.sum(CP_LLM2))
+print('CP Flo:', np.sum(CP_LLM2))
+print('CP Me:', np.sum(CP_LLM_me))
 
 # plt.figure()
 # plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CP, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_P$ BEM')

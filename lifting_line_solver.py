@@ -246,7 +246,9 @@ class LiftingLineSolver:
     def CP_and_CT(self, a, aline, r_R, f_norm, f_tan, v_inf, omega, radius, nblades):
 
         CT_LLM = []
+        CT_LLM2 = []
         CP_LLM = []
+        CP_LLM2 = []
         CP_flow = []
 
         for i in range(len(r_R) - 1):
@@ -254,10 +256,12 @@ class LiftingLineSolver:
             drtemp = (-r_R[i] + r_R[i + 1])
             CT_LLM.append((drtemp * f_norm[i] * nblades) / (0.5 * (v_inf ** 2) * np.pi * radius))
             CP_LLM.append((drtemp * f_tan[i] * r_R_temp * omega * nblades) / (0.5 * (v_inf ** 3) * np.pi))
+            CT_LLM2.append((drtemp * f_norm[i] * nblades) / (0.5 * (v_inf ** 2) * np.pi * radius**2))
+            CP_LLM2.append((drtemp * f_tan[i] * radius * omega * nblades) / (0.5 * (v_inf ** 3) * np.pi* radius**2))
             # another method
             U_tan = r_R_temp * radius * omega * aline[i]
             U_norm = v_inf * (1 - a[i])
             CP_flow.append((drtemp * (f_norm[i] * U_norm - f_tan[i] * U_tan) * nblades) / (0.5 * (v_inf ** 3) *
                                                                                            np.pi * radius))
 
-        return [CP_LLM, CT_LLM]
+        return [CP_LLM, CT_LLM, CP_LLM2, CT_LLM2]
