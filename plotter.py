@@ -11,14 +11,15 @@ import numpy as np
 nspan = 20
 ntheta = 200
 nblades = 3
-spacing = 'equal'
-nrotor = 2
+spacing = "equal"
+nrotor = 1
 
-prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta, spacing=spacing, a=0)
+prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta, spacing=spacing,
+                         a=0, double_rotor=False, phase_diff=0)
 
 blade = prop_geo.bladepanels
 rings = prop_geo.filaments
-solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.5, tol=1e-8, n_iter=100, double_rotor=False)
+solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.33, tol=1e-6, n_iter=100)
 
 data = solver.run_solver()
 omega = solver.geo.tsr * solver.geo.v_inf / solver.geo.radius
