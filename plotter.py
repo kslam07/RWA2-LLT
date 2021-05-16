@@ -124,14 +124,16 @@ plt.grid(True)
 plt.savefig('BEMcomp_figures/alpha_phi.eps', format='eps')
 
 # Radial distribution F_tan en F_ax
+F_nondim_BEM = 0.5 * BEM_rho[0] * (BEM_vinf[0]**2) * BEM_radius[0]
+F_nondim_LLM = 0.5 * (solver.geo.v_inf ** 2) * solver.geo.radius
 
 plt.figure(figsize=(8, 6), dpi=150)
-plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Ax, 0), BEM_rR.shape)[0, :] * BEM_rho[0], '-r', label=r'$F_{ax}$ BEM')
-plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Az, 0), BEM_rR.shape)[0, :] * BEM_rho[0], '-b', label=r'$F_{tan}$ BEM')
+plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Ax, 0), BEM_rR.shape)[0, :]/F_nondim_BEM, '-r', label=r'$F_{ax}$ BEM')
+plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Az, 0), BEM_rR.shape)[0, :]/F_nondim_BEM, '-b', label=r'$F_{tan}$ BEM')
 # Plot one blade of LLM
-plt.plot(data[2][:nspan - 1, 0], np.resize(data[3], data[2].shape)[:nspan - 1, 0] * BEM_rho[0], '--r',
+plt.plot(data[2][:nspan - 1, 0], np.resize(data[3], data[2].shape)[:nspan - 1, 0]/F_nondim_LLM, '--r',
          label=r'$F_{ax}$ LLM')
-plt.plot(data[2][:nspan - 1, 0], np.resize(data[4], data[2].shape)[:nspan - 1, 0] * BEM_rho[0], '--b',
+plt.plot(data[2][:nspan - 1, 0], np.resize(data[4], data[2].shape)[:nspan - 1, 0]/F_nondim_LLM, '--b',
          label=r'$F_{tan}$ LLM')
 plt.xlabel('Radial location r/R (-)', fontsize=15)
 plt.ylabel('Force (N)', fontsize=15)
