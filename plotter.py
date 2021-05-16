@@ -104,15 +104,16 @@ ax1.axis("auto")
 # =============================================================================
 plt.close('All')
 
-[BEM_rR, BEM_alpha, BEM_phi, BEM_rho, BEM_Ax, BEM_Az, BEM_Gamma, BEM_CT, BEM_CP, BEM_a, BEM_aline, BEM_vinf, BEM_radius] = read_matlab_data()
+[BEM_rR, BEM_alpha, BEM_phi, BEM_rho, BEM_Ax, BEM_Az, BEM_Gamma,
+ BEM_CT, BEM_CP, BEM_a, BEM_aline, BEM_vinf, BEM_radius] = read_matlab_data()
 
 # Radial distribution alpha and phi
 
 plt.figure(figsize=(8, 6), dpi=150)
 plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_alpha, 0), BEM_rR.shape)[0, :] * 180 / np.pi, '-r', label=r'$\alpha$ BEM')
-plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_phi, 0), BEM_rR.shape)[0, :] * 180 / np.pi, '-b', label=r'$\phi$ BEM')
 plt.plot(data[2][:nspan - 1, 0], np.degrees(np.resize(data[6], data[2].shape)[:nspan - 1, 0]), '--r',
          label=r'$\alpha$ LLM')
+plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_phi, 0), BEM_rR.shape)[0, :] * 180 / np.pi, '-b', label=r'$\phi$ BEM')
 plt.plot(data[2][:nspan - 1, 0], np.degrees(np.resize(data[7], data[2].shape)[:nspan - 1, 0]), '--b',
          label=r'$\phi$ LLM')
 plt.xlabel('Radial location r/R (-)', fontsize=15)
@@ -124,19 +125,19 @@ plt.grid(True)
 plt.savefig('BEMcomp_figures/alpha_phi.eps', format='eps')
 
 # Radial distribution F_tan en F_ax
+
 F_nondim_BEM = 0.5 * BEM_rho[0] * (BEM_vinf[0]**2) * BEM_radius[0]
 F_nondim_LLM = 0.5 * (solver.geo.v_inf ** 2) * solver.geo.radius
 
 plt.figure(figsize=(8, 6), dpi=150)
 plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Ax, 0), BEM_rR.shape)[0, :]/F_nondim_BEM, '-r', label=r'$F_{ax}$ BEM')
-plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Az, 0), BEM_rR.shape)[0, :]/F_nondim_BEM, '-b', label=r'$F_{tan}$ BEM')
-# Plot one blade of LLM
 plt.plot(data[2][:nspan - 1, 0], np.resize(data[3], data[2].shape)[:nspan - 1, 0]/F_nondim_LLM, '--r',
          label=r'$F_{ax}$ LLM')
+plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_Az, 0), BEM_rR.shape)[0, :]/F_nondim_BEM, '-b', label=r'$F_{tan}$ BEM')
 plt.plot(data[2][:nspan - 1, 0], np.resize(data[4], data[2].shape)[:nspan - 1, 0]/F_nondim_LLM, '--b',
          label=r'$F_{tan}$ LLM')
 plt.xlabel('Radial location r/R (-)', fontsize=15)
-plt.ylabel('Force (N)', fontsize=15)
+plt.ylabel('Force $F$ (-)', fontsize=15)
 plt.title(r'Radial distribution of $F_{ax}$ and $F_{az}$', fontsize=16)
 plt.legend(fontsize=15)
 plt.grid(True)
@@ -149,8 +150,8 @@ plt.savefig('BEMcomp_figures/forces.eps', format='eps')
 circ_nondim = (np.pi * solver.geo.v_inf ** 2) / (nblades * omega)
 
 plt.figure(figsize=(8, 6), dpi=150)
-plt.plot(BEM_rR[0, :], BEM_Gamma[0, :], label=r'$\Gamma$ BEM')
-plt.plot(data[2][:nspan - 1, 0], np.resize(data[5], data[2].shape)[:nspan - 1, 0] / circ_nondim, label=r'$\Gamma$ LLM')
+plt.plot(BEM_rR[0, :], BEM_Gamma[0, :], '-b', label=r'$\Gamma$ BEM')
+plt.plot(data[2][:nspan - 1, 0], np.resize(data[5], data[2].shape)[:nspan - 1, 0] / circ_nondim, '--b', label=r'$\Gamma$ LLM')
 plt.xlabel('Radial location r/R (-)', fontsize=15)
 plt.ylabel(r'Circulation $\Gamma$ (-)', fontsize=15)
 plt.title(r'Radial distribution of $\Gamma$', fontsize=16)
@@ -159,19 +160,33 @@ plt.grid(True)
 #plt.savefig('BEMcomp_figures/circulation.eps', bbox_inches='tight', format='eps')
 plt.savefig('BEMcomp_figures/circulation.eps', format='eps')
 
-# INDUCTION FACTORS
-fig, ax = plt.subplots(1, 2, dpi=150)
-ax[0].plot(BEM_rR[0, :], BEM_a[0, :], label="BEM")
-ax[0].plot(data[2][:nspan - 1], data[0][:nspan - 1], label="Lifting Line")
-ax[1].plot(BEM_rR[0, :], BEM_aline[0, :], label="BEM")
-ax[1].plot(data[2][:nspan - 1], data[1][:nspan - 1], label="Lifting Line")
-ax[0].set_xlabel("r/R [-]")
-ax[0].set_ylabel("a [-]")
-ax[1].set_xlabel("r/R [-]")
-ax[1].set_ylabel("a' [-]")
-ax[0].grid()
-ax[1].grid()
-ax[0].legend()
+# Radial distribution of induction factors
+
+# fig, ax = plt.subplots(1, 2, dpi=150)
+# ax[0].plot(BEM_rR[0, :], BEM_a[0, :], label="BEM")
+# ax[0].plot(data[2][:nspan - 1], data[0][:nspan - 1], label="Lifting Line")
+# ax[1].plot(BEM_rR[0, :], BEM_aline[0, :], label="BEM")
+# ax[1].plot(data[2][:nspan - 1], data[1][:nspan - 1], label="Lifting Line")
+# ax[0].set_xlabel("r/R [-]")
+# ax[0].set_ylabel("a [-]")
+# ax[1].set_xlabel("r/R [-]")
+# ax[1].set_ylabel("a' [-]")
+# ax[0].grid()
+# ax[1].grid()
+# ax[0].legend()
+
+plt.figure(figsize=(8, 6), dpi=150)
+plt.plot(BEM_rR[0, :], BEM_a[0, :], '-r', label="$a$ BEM")
+plt.plot(data[2][:nspan - 1], data[0][:nspan - 1], '--r', label="$a$ LLM")
+plt.plot(BEM_rR[0, :], BEM_aline[0, :], '-b', label="$a'$ BEM")
+plt.plot(data[2][:nspan - 1], data[1][:nspan - 1], '--b', label="$a'$ LLM")
+plt.xlabel('Radial location r/R (-)', fontsize=15)
+plt.ylabel('Induction factor a (-)', fontsize=15)
+plt.title(r'Radial distribution of $a$ and $a^\prime$', fontsize=16)
+plt.legend(fontsize=15)
+plt.grid(True)
+#plt.savefig('BEMcomp_figures/alpha_phi.eps', bbox_inches='tight', format='eps')
+plt.savefig('BEMcomp_figures/inductionfactors.eps', format='eps')
 
 # RADIAL DISTRIBUTION CT
 
