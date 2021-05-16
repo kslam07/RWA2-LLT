@@ -4,7 +4,7 @@ filaments
 """
 import numpy as np
 import matplotlib.pyplot as plt
-
+import sys
 
 class BladeGeometry:
 
@@ -71,7 +71,7 @@ class BladeGeometry:
 
         else:
             print("Choose equal or cosine spacing")
-
+            sys.exit()
         self.span_arr = rsegment
         return
 
@@ -134,7 +134,7 @@ class BladeGeometry:
                 yt = r[idx]
                 zt = -chord1 * np.cos(angle1)
                 dx = np.cumsum(np.ones(len(self.theta_arr[:-1])) * self.theta_arr[1] / (
-                            self.tsr * self.v_inf / self.v_inf / (1 - self.a)))
+                            self.tsr / (1 - self.a)))
                 dy = np.cumsum(np.cos(-self.theta_arr[1:]) - np.cos(-self.theta_arr[:-1])) * r[idx]
                 dz = np.cumsum(np.sin(-self.theta_arr[1:]) - np.sin(-self.theta_arr[:-1])) * r[idx]
                 data = np.vstack([xt + dx, yt + dy, zt + dz, np.insert((xt + dx)[:-1], 0, xt),
@@ -152,7 +152,7 @@ class BladeGeometry:
                 yt = r[idx + 1]
                 zt = -chord2 * np.cos(angle2)
                 dx = np.cumsum(np.ones(len(self.theta_arr[:-1])) * self.theta_arr[1] / (
-                            self.tsr * self.v_inf / self.v_inf / (1 - self.a)))
+                            self.tsr / (1 - self.a)))
                 dy = np.cumsum(np.cos(-self.theta_arr[1:]) - np.cos(-self.theta_arr[:-1])) * r[idx + 1]
                 dz = np.cumsum(np.sin(-self.theta_arr[1:]) - np.sin(-self.theta_arr[:-1])) * r[idx + 1]
                 data = np.vstack([np.insert((xt + dx)[:-1], 0, xt), np.insert((yt + dy)[:-1], 0, yt),

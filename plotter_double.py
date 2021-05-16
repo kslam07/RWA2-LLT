@@ -24,7 +24,7 @@ solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.5, tol=1e-6,
 
 data = solver.run_solver()
 omega = solver.geo.tsr * solver.geo.v_inf / solver.geo.radius
-[CP_LLM, CT_LLM] = solver.CP_and_CT(np.resize(data[0], data[2].shape), np.resize(data[1], data[2].shape), data[2],
+[CP_LLM, CT_LLM, CP_LLM2, CT_LLM2] = solver.CP_and_CT(np.resize(data[0], data[2].shape), np.resize(data[1], data[2].shape), data[2],
                                     np.resize(data[3], data[2].shape), np.resize(data[4], data[2].shape),
                                     solver.geo.v_inf, omega, solver.geo.radius, nblades)
 
