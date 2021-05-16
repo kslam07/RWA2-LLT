@@ -104,7 +104,7 @@ ax1.axis("auto")
 # =============================================================================
 plt.close('All')
 
-[BEM_rR, BEM_alpha, BEM_phi, BEM_rho, BEM_Ax, BEM_Az, BEM_Gamma, BEM_CT, BEM_CP, BEM_a, BEM_aline] = read_matlab_data()
+[BEM_rR, BEM_alpha, BEM_phi, BEM_rho, BEM_Ax, BEM_Az, BEM_Gamma, BEM_CT, BEM_CP, BEM_a, BEM_aline, BEM_vinf, BEM_radius] = read_matlab_data()
 
 # Radial distribution alpha and phi
 
