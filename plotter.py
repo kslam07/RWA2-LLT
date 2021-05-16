@@ -121,8 +121,8 @@ plt.ylabel('Angle (deg)', fontsize=15)
 plt.title(r'Radial distribution of $\alpha$ and $\phi$', fontsize=16)
 plt.legend(fontsize=15)
 plt.grid(True)
-#plt.savefig('BEMcomp_figures/alpha_phi.eps', bbox_inches='tight', format='eps')
-plt.savefig('BEMcomp_figures/alpha_phi.eps', format='eps')
+# plt.savefig('BEMcomp_figures/alpha_phi.eps', bbox_inches='tight', format='eps')
+# plt.savefig('BEMcomp_figures/alpha_phi.eps', format='eps')
 
 # Radial distribution F_tan en F_ax
 
@@ -141,8 +141,8 @@ plt.ylabel('Force $F$ (-)', fontsize=15)
 plt.title(r'Radial distribution of $F_{ax}$ and $F_{az}$', fontsize=16)
 plt.legend(fontsize=15)
 plt.grid(True)
-#plt.savefig('BEMcomp_figures/forces.eps', bbox_inches='tight', format='eps')
-plt.savefig('BEMcomp_figures/forces.eps', format='eps')
+# plt.savefig('BEMcomp_figures/forces.eps', bbox_inches='tight', format='eps')
+# plt.savefig('BEMcomp_figures/forces.eps', format='eps')
 
 # Radial distribution circulation
 
@@ -157,8 +157,8 @@ plt.ylabel(r'Circulation $\Gamma$ (-)', fontsize=15)
 plt.title(r'Radial distribution of $\Gamma$', fontsize=16)
 plt.legend(fontsize=15)
 plt.grid(True)
-#plt.savefig('BEMcomp_figures/circulation.eps', bbox_inches='tight', format='eps')
-plt.savefig('BEMcomp_figures/circulation.eps', format='eps')
+# plt.savefig('BEMcomp_figures/circulation.eps', bbox_inches='tight', format='eps')
+# plt.savefig('BEMcomp_figures/circulation.eps', format='eps')
 
 # Radial distribution of induction factors
 
@@ -185,8 +185,8 @@ plt.ylabel('Induction factor a (-)', fontsize=15)
 plt.title(r'Radial distribution of $a$ and $a^\prime$', fontsize=16)
 plt.legend(fontsize=15)
 plt.grid(True)
-#plt.savefig('BEMcomp_figures/alpha_phi.eps', bbox_inches='tight', format='eps')
-plt.savefig('BEMcomp_figures/inductionfactors.eps', format='eps')
+# plt.savefig('BEMcomp_figures/alpha_phi.eps', bbox_inches='tight', format='eps')
+# plt.savefig('BEMcomp_figures/inductionfactors.eps', format='eps')
 
 # RADIAL DISTRIBUTION CT
 
