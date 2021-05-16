@@ -6,7 +6,7 @@ def read_matlab_data():
 
     # Read .mat file
     f = h5py.File('BEM_data.mat','r')
-    print(f.keys())
+    # print(f.keys())
 
     # Load the BEM variables that you need
     BEM_rR = np.asarray(f.get('rR'))
