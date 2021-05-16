@@ -6,7 +6,7 @@ def read_matlab_data():
 
     # Read .mat file
     f = h5py.File('BEM_data.mat','r')
-    # print(f.keys())
+    print(f.keys())
 
     # Load the BEM variables that you need
     BEM_rR = np.asarray(f.get('rR'))
@@ -20,11 +20,13 @@ def read_matlab_data():
     BEM_CP = np.asarray(f.get('CP'))
     BEM_a = np.asarray(f.get('a'))
     BEM_aline = np.asarray(f.get('aprime'))
+    BEM_vinf = np.asarray(f.get('uInf'))
+    BEM_radius = np.asarray(f.get('rRotor'))
 
     # Close .mat file
     f.close()
 
-    return [BEM_rR, BEM_alpha, BEM_phi, BEM_rho, BEM_Ax, BEM_Az, BEM_Gamma , BEM_CT, BEM_CP, BEM_a, BEM_aline]
+    return [BEM_rR, BEM_alpha, BEM_phi, BEM_rho, BEM_Ax, BEM_Az, BEM_Gamma , BEM_CT, BEM_CP, BEM_a, BEM_aline, BEM_vinf, BEM_radius]
 
 # Polar plot
 
