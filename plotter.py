@@ -174,9 +174,12 @@ ax[0].legend()
 # RADIAL DISTRIBUTION CT
 
 CT_LLM_me = np.resize(data[3], data[2].shape)[:, 0] / (0.5 * np.pi * (solver.geo.radius ** 2) * solver.geo.v_inf ** 2)
-print('CT Carlos:', np.sum(CT_LLM))
-print('CT Flo:', np.sum(CT_LLM2))
-print('CT Me:', np.sum(CT_LLM_me))
+CT_a = 4*data[0][:nspan - 1]*(np.ones(data[0][:nspan - 1].shape)-data[0][:nspan - 1])
+
+print('CT Carlos:', np.sum(CT_LLM[:nspan-1]))
+print('CT Flo:', np.sum(CT_LLM2[:nspan-1]))
+print('CT Me:', np.sum(CT_LLM_me[:nspan-1]))
+print('CT a:', np.sum(CT_a[:nspan-1]))
 
 # plt.figure()
 # plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CT, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_T$ BEM')
@@ -191,10 +194,12 @@ print('CT Me:', np.sum(CT_LLM_me))
 
 CP_LLM_me = np.resize(data[3], data[2].shape)[:, 0]*np.resize(data[0], data[2].shape)[:, 0]\
           *data[2][:, 0]*solver.geo.radius*omega/(0.5*(solver.geo.v_inf**3)*np.pi*solver.geo.radius**2)
+CP_a = 4*data[0]*(np.ones(data[0].shape)-data[0])**2
 
-print('CP Carlos:', np.sum(CP_LLM))
-print('CP Flo:', np.sum(CP_LLM2))
-print('CP Me:', np.sum(CP_LLM_me))
+print('CP Carlos:', np.sum(CP_LLM[:nspan-1]))
+print('CP Flo:', np.sum(CP_LLM2[:nspan-1]))
+print('CP Me:', np.sum(CP_LLM_me[:nspan-1]))
+print('CP a:', np.sum(CP_a[:nspan-1]))
 
 # plt.figure()
 # plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CP, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_P$ BEM')
