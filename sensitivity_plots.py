@@ -12,7 +12,7 @@ import numpy as np
 plot_Spacing = False
 plot_DiscrAzimuthal = False
 plot_ConvecSpeed = False
-plot_WakeLength = True
+plot_WakeLength = False
 
 # =============================================================================
 #  Wake Discretization
@@ -103,7 +103,7 @@ if plot_ConvecSpeed:
 if plot_WakeLength:
 
     nspan = 20
-    ntheta = 20
+    ntheta = 200
     nblades = 3
     spacing = 'equal'
 
@@ -163,7 +163,7 @@ if plot_WakeLength:
     # plt.plot(np.arange(1, len(error_list[1]) + 1), error_list[1], '-b', label='# Rotations = ' + str(N_rotations[1]))
     # plt.plot(np.arange(1, len(error_list[2]) + 1), error_list[2], '-g', label='# Rotations = ' + str(N_rotations[2]))
     plt.xlabel('Iterations N', fontsize=15)
-    plt.ylabel(r'Error $\epsilon$ (-)', fontsize=15)
+    plt.ylabel(r'Log error $\epsilon$ (-)', fontsize=15)
     plt.title('Error', fontsize=16)
     plt.legend(fontsize=15)
     plt.grid(True)
