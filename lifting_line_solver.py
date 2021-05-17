@@ -171,6 +171,7 @@ class LiftingLineSolver:
         phi = np.ones(len(self.geo.cp))
         # initial error
         err = 1.0
+        error_log = []
 
         for i in range(self.n_iter):
 
@@ -234,6 +235,7 @@ class LiftingLineSolver:
             # check convergence
             err_ref = max(0.001, np.max(np.abs(gamma_new)))  # choose highest value for reference error
             err = np.max(np.abs(gamma_new - gamma_curr)) / err_ref
+            error_log.append(err)
             print("iteration: {} | current error: {}".format(i, err))
             if err < self.tol:
                 print("solution converged")
@@ -242,7 +244,7 @@ class LiftingLineSolver:
             # set new estimate of bound circulation
             gamma_new = (1 - self.weight) * gamma_curr + self.weight * gamma_new
         print("solution unconverged error: {}".format(err)) if err < self.tol else None
-        return [a, aline, r_R, f_norm, f_tan, gamma, alpha, phi]
+        return [a, aline, r_R, f_norm, f_tan, gamma, alpha, phi, error_log]
 
     def CP_and_CT(self, a, aline, r_R, f_norm, f_tan, v_inf, omega, radius, nblades):
 
