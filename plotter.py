@@ -19,7 +19,7 @@ prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspa
 
 blade = prop_geo.bladepanels
 rings = prop_geo.filaments
-solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.33, tol=1e-6, n_iter=100)
+solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.33, tol=1e-6, n_iter=200)
 
 data = solver.run_solver()
 omega = solver.geo.tsr * solver.geo.v_inf / solver.geo.radius
@@ -190,13 +190,8 @@ plt.grid(True)
 
 # RADIAL DISTRIBUTION CT
 
-CT_LLM_me = np.resize(data[3], data[2].shape)[:, 0] / (0.5 * np.pi * (solver.geo.radius ** 2) * solver.geo.v_inf ** 2)
-CT_a = 4*np.mean(data[0])*(1-np.mean(data[0]))
-
 print('CT Carlos:', np.sum(CT_LLM[:nspan-1]))
-print('CT Flo:', np.sum(CT_LLM2[:nspan-1]))
-print('CT Me:', np.sum(CT_LLM_me[:nspan-1]))
-print('CT a:', CT_a)
+print('CT a:', CT_LLM2)
 
 # plt.figure()
 # plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CT, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_T$ BEM')
@@ -209,14 +204,8 @@ print('CT a:', CT_a)
 
 # Radial distribution CP
 
-CP_LLM_me = np.resize(data[3], data[2].shape)[:, 0]*np.resize(data[0], data[2].shape)[:, 0]\
-          *data[2][:, 0]*solver.geo.radius*omega/(0.5*(solver.geo.v_inf**3)*np.pi*solver.geo.radius**2)
-CP_a = 4*np.mean(data[0])*(1-np.mean(data[0]))**2
-
 print('CP Carlos:', np.sum(CP_LLM[:nspan-1]))
-print('CP Flo:', np.sum(CP_LLM2[:nspan-1]))
-print('CP Me:', np.sum(CP_LLM_me[:nspan-1]))
-print('CP a:', CP_a)
+print('CP a:', CP_LLM2)
 
 # plt.figure()
 # plt.plot(BEM_rR[0, :], np.resize(np.mean(BEM_CP, 0), BEM_rR.shape)[0, :], '-r', label=r'$C_P$ BEM')
