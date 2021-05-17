@@ -107,18 +107,24 @@ if plot_WakeLength:
     nblades = 3
     spacing = 'equal'
 
-    N_rotations = [10, 20, 30]
+    N_rotations = [2, 4, 8]
     circ_list = []
     Fax_list = []
     Faz_list = []
     error_list = []
+
+    fig = plt.figure(dpi=150)
+    i = 0
 
     for rotation in N_rotations:
 
         prop_geo = BladeGeometry2(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta,
                                   spacing=spacing, a=0, n_rotations=rotation, xshift=0, yshift=100, zshift=0,
                                   phase_diff=0, double_rotor=False)
-        # prop_geo.doubleRotor()
+
+        blade = prop_geo.bladepanels
+        rings = prop_geo.filaments
+
         solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.5, tol=1e-6, n_iter=200)
 
         data = solver.run_solver()
@@ -131,6 +137,58 @@ if plot_WakeLength:
         Fax_list.append(np.resize(data[3], data[2].shape)[:nspan - 1, 0] / F_nondim_LLM)
         Faz_list.append(np.resize(data[4], data[2].shape)[:nspan - 1, 0] / F_nondim_LLM)
         error_list.append(data[8])
+
+        plot_wake = True
+
+        if plot_wake:
+
+            i += 1
+
+            ax = fig.add_subplot(1, 3, i, projection="3d")
+
+            # =============================================================================
+            # WAKE VIZ
+            # =============================================================================
+
+            ax.plot_wireframe(rings[0, :nspan - 1, :ntheta + 1],
+                               rings[1, :nspan - 1, :ntheta + 1],
+                               rings[2, :nspan - 1, :ntheta + 1],
+                               color='green', ccount=0, rcount=5)
+            ax.plot_wireframe(rings[0, nspan - 1:2 * nspan - 2, :ntheta + 1],
+                               rings[1, nspan - 1:2 * nspan - 2, :ntheta + 1],
+                               rings[2, nspan - 1:2 * nspan - 2, :ntheta + 1],
+                               color='blue', ccount=0, rcount=5)
+            ax.plot_wireframe(rings[0, (2 * nspan - 2):, :ntheta + 1],
+                               rings[1, (2 * nspan - 2):, :ntheta + 1],
+                               rings[2, (2 * nspan - 2):, :ntheta + 1],
+                               color='red', ccount=0, rcount=5)
+
+            # split blade panels
+            blades_split = np.split(blade, 3)
+
+            for blade_i in (blades_split):
+                x = blade_i[:, [0, 9]]
+                y = blade_i[:, [1, 10]]
+                z = blade_i[:, [2, 11]]
+
+                ax.plot_surface(x, y, z, color='k')
+
+            # =============================================================================
+            # Draw rotor hub
+            # =============================================================================
+            theta = np.linspace(0, rotation * np.pi)
+            y = solver.geo.span_arr[0] * np.cos(theta) * solver.r_rotor
+            z = solver.geo.span_arr[0] * np.sin(theta) * solver.r_rotor
+
+            ax.plot(y * 0, y, z, color='k')
+
+            ax.view_init(0, 180)
+            ax.set_xlabel(r"Wakelength L/2$\pi$")
+            ax.set_xlim(0, 20*N_rotations[-1])
+            ax.set_xticklabels(range(N_rotations[-1] + 1))
+            ax.set_yticklabels([])
+            ax.set_zticklabels([])
+            ax.set_title('{} Rotations'.format(rotation))
 
     plt.figure(figsize=(8, 6), dpi=150)
     plt.plot(data[2][:nspan - 1, 0], circ_list[0], '-r', label='# Rotations = ' + str(N_rotations[0]))
