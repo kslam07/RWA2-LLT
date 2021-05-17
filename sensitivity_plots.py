@@ -12,7 +12,7 @@ import numpy as np
 plot_Spacing = False
 plot_DiscrAzimuthal = False
 plot_ConvecSpeed = False
-plot_WakeLength = False
+plot_WakeLength = True
 
 # =============================================================================
 #  Wake Discretization
@@ -107,7 +107,7 @@ if plot_WakeLength:
     nblades = 3
     spacing = 'equal'
 
-    N_rotations = [2, 4, 8]
+    N_rotations = [1, 2, 3]
     circ_list = []
     Fax_list = []
     Faz_list = []
@@ -138,7 +138,7 @@ if plot_WakeLength:
         Faz_list.append(np.resize(data[4], data[2].shape)[:nspan - 1, 0] / F_nondim_LLM)
         error_list.append(data[8])
 
-        plot_wake = True
+        plot_wake = False
 
         if plot_wake:
 
@@ -150,15 +150,15 @@ if plot_WakeLength:
             # WAKE VIZ
             # =============================================================================
 
-            ax.plot_wireframe(rings[0, :nspan - 1, :ntheta + 1],
+            ax.plot_wireframe(rings[0, :nspan - 1, :ntheta + 1]/(40),
                                rings[1, :nspan - 1, :ntheta + 1],
                                rings[2, :nspan - 1, :ntheta + 1],
                                color='green', ccount=0, rcount=5)
-            ax.plot_wireframe(rings[0, nspan - 1:2 * nspan - 2, :ntheta + 1],
+            ax.plot_wireframe(rings[0, nspan - 1:2 * nspan - 2, :ntheta + 1]/(40),
                                rings[1, nspan - 1:2 * nspan - 2, :ntheta + 1],
                                rings[2, nspan - 1:2 * nspan - 2, :ntheta + 1],
                                color='blue', ccount=0, rcount=5)
-            ax.plot_wireframe(rings[0, (2 * nspan - 2):, :ntheta + 1],
+            ax.plot_wireframe(rings[0, (2 * nspan - 2):, :ntheta + 1]/(40),
                                rings[1, (2 * nspan - 2):, :ntheta + 1],
                                rings[2, (2 * nspan - 2):, :ntheta + 1],
                                color='red', ccount=0, rcount=5)
@@ -176,19 +176,19 @@ if plot_WakeLength:
             # =============================================================================
             # Draw rotor hub
             # =============================================================================
-            theta = np.linspace(0, rotation * np.pi)
+            theta = np.linspace(0, 2 * np.pi)
             y = solver.geo.span_arr[0] * np.cos(theta) * solver.r_rotor
             z = solver.geo.span_arr[0] * np.sin(theta) * solver.r_rotor
 
             ax.plot(y * 0, y, z, color='k')
 
             ax.view_init(0, 180)
-            ax.set_xlabel(r"Wakelength L/2$\pi$")
-            ax.set_xlim(0, 20*N_rotations[-1])
-            ax.set_xticklabels(range(N_rotations[-1] + 1))
             ax.set_yticklabels([])
             ax.set_zticklabels([])
+            ax.set_xlim(0, N_rotations[-1])
+            ax.set_xlabel(r"Wakelength $\frac{L}{2 \pi}$ (-)")
             ax.set_title('{} Rotations'.format(rotation))
+            ax.view_init(elev=10, azim=-450)
 
     plt.figure(figsize=(8, 6), dpi=150)
     plt.plot(data[2][:nspan - 1, 0], circ_list[0], '-r', label='# Rotations = ' + str(N_rotations[0]))
