@@ -19,7 +19,7 @@ class BladeGeometry2:
         self.n_theta = n_theta
         self.a = a
         self.span_arr = np.linspace(0.2, 1.0, n_span)
-        self.theta_arr = np.linspace(0, n_rotations * np.pi, n_theta)
+        self.theta_arr = np.linspace(0, n_rotations * 2 * np.pi, n_theta)
         self.phase_diff = np.radians(phase_diff)
 
         self.xshift = xshift
