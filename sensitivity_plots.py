@@ -12,7 +12,7 @@ import numpy as np
 plot_Spacing = False
 plot_DiscrAzimuthal = False
 plot_ConvecSpeed = False
-plot_WakeLength = True
+plot_WakeLength = False
 
 # =============================================================================
 #  Wake Discretization
@@ -86,6 +86,7 @@ if plot_ConvecSpeed:
     plt.title(r'Radial distribution of $\Gamma$', fontsize=16)
     plt.legend(fontsize=15)
     plt.grid(True)
+    plt.savefig('Sensitivity_figures/convec_circ.eps', format='eps')
 
     plt.figure(figsize=(8, 6), dpi=150)
     plt.plot(data[2][:nspan - 1, 0], Fax_list[0], '-r', label=r'$F_{ax}$ | $\lambda$ = ' + str(tsr_list[0]))
@@ -99,6 +100,7 @@ if plot_ConvecSpeed:
     plt.title(r'Radial distribution of $F_{ax}$ and $F_{az}$', fontsize=16)
     plt.legend(fontsize=15)
     plt.grid(True)
+    plt.savefig('Sensitivity_figures/convec_forces.eps', format='eps')
 
 if plot_WakeLength:
 
@@ -107,7 +109,7 @@ if plot_WakeLength:
     nblades = 3
     spacing = 'equal'
 
-    N_rotations = [1, 2, 3]
+    N_rotations = [5, 10, 15]
     circ_list = []
     Fax_list = []
     Faz_list = []
@@ -199,6 +201,7 @@ if plot_WakeLength:
     plt.title(r'Radial distribution of $\Gamma$', fontsize=16)
     plt.legend(fontsize=15)
     plt.grid(True)
+    plt.savefig('Sensitivity_figures/varwake_circ.eps', format='eps')
 
     plt.figure(figsize=(8, 6), dpi=150)
     plt.plot(data[2][:nspan - 1, 0], Fax_list[0], '-r', label=r'$F_{ax}$ | # Rotations = ' + str(N_rotations[0]))
@@ -212,6 +215,7 @@ if plot_WakeLength:
     plt.title(r'Radial distribution of $F_{ax}$ and $F_{az}$', fontsize=16)
     plt.legend(fontsize=15)
     plt.grid(True)
+    plt.savefig('Sensitivity_figures/varwake_forces.eps', format='eps')
 
     plt.figure(figsize=(8, 6), dpi=150)
     plt.semilogy(np.arange(1, len(error_list[0]) + 1), error_list[0], '-r', label='# Rotations = ' + str(N_rotations[0]))
@@ -225,5 +229,6 @@ if plot_WakeLength:
     plt.title('Error', fontsize=16)
     plt.legend(fontsize=15)
     plt.grid(True)
+    plt.savefig('Sensitivity_figures/varwake_convergence.eps', format='eps')
 
 plt.show()
