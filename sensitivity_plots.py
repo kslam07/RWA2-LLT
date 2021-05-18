@@ -11,7 +11,8 @@ import numpy as np
 
 plot_Spacing = False
 plot_DiscrAzimuthal = False
-plot_ConvecSpeed = True
+plot_ConvecSpeed = False
+plot_ConvecSpeed2 = False
 plot_WakeLength = False
 
 [BEM_rR, BEM_alpha, BEM_phi, BEM_rho, BEM_Ax, BEM_Az, BEM_Gamma,
@@ -155,6 +156,69 @@ if plot_ConvecSpeed:
     plt.grid(True)
     plt.savefig('Sensitivity_figures/convec_forces.eps', format='eps')
 
+if plot_ConvecSpeed2:
+
+    nspan = 20
+    ntheta = 200
+    nblades = 3
+    spacing = 'equal'
+
+    a_list = [0.2, 0.25, 0.3]
+    circ_list = []
+    Fax_list = []
+    Faz_list = []
+
+    for adf in a_list:
+
+        prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta,
+                                 spacing=spacing, a=adf, xshift=0, yshift=100, zshift=0, phase_diff=0, double_rotor=False)
+        # prop_geo.doubleRotor()
+        solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, afix=adf, weight=0.5, tol=1e-6, n_iter=200)
+
+        data = solver.run_solver()
+        omega = solver.geo.tsr * solver.geo.v_inf / solver.geo.radius
+
+        [CP_LLM, CT_LLM, CP_LLM2, CT_LLM2] = solver.CP_and_CT(np.resize(data[0], data[2].shape),
+                                                              np.resize(data[1], data[2].shape), data[2],
+                                                              np.resize(data[3], data[2].shape),
+                                                              np.resize(data[4], data[2].shape),
+                                                              solver.geo.v_inf, omega, solver.geo.radius, nblades)
+        print('-------------')
+        print(CP_LLM2)
+        print(CT_LLM2)
+
+        circ_nondim = (np.pi * solver.geo.v_inf ** 2) / (nblades * omega)
+        circ_list.append(np.resize(data[5], data[2].shape)[:nspan - 1, 0] / circ_nondim)
+
+        F_nondim_LLM = 0.5 * (solver.geo.v_inf ** 2) * solver.geo.radius
+        Fax_list.append(np.resize(data[3], data[2].shape)[:nspan - 1, 0] / F_nondim_LLM)
+        Faz_list.append(np.resize(data[4], data[2].shape)[:nspan - 1, 0] / F_nondim_LLM)
+
+    plt.figure(figsize=(8, 6), dpi=150)
+    plt.plot(data[2][:nspan - 1, 0], circ_list[0], '-', color=c[0], label='$a$ = ' + str(a_list[0]))
+    plt.plot(data[2][:nspan - 1, 0], circ_list[1], '-', color=c[1], label='$a$ = ' + str(a_list[1]))
+    plt.plot(data[2][:nspan - 1, 0], circ_list[2], '-', color=c[2], label='$a$ = ' + str(a_list[2]))
+    plt.xlabel('Radial location r/R (-)', fontsize=15)
+    plt.ylabel(r'Circulation $\Gamma$ (-)', fontsize=15)
+    plt.title(r'Radial distribution of $\Gamma$', fontsize=16)
+    plt.legend(fontsize=15)
+    plt.grid(True)
+    plt.savefig('Sensitivity_figures/convec_circ_a.eps', format='eps')
+
+    plt.figure(figsize=(8, 6), dpi=150)
+    plt.plot(data[2][:nspan - 1, 0], Fax_list[0], '-', color=c[0], label=r'$F_{ax}$ | $a$ = ' + str(a_list[0]))
+    plt.plot(data[2][:nspan - 1, 0], Fax_list[1], '-', color=c[1], label=r'$F_{ax}$ | $a$ = ' + str(a_list[1]))
+    plt.plot(data[2][:nspan - 1, 0], Fax_list[2], '-', color=c[2], label=r'$F_{ax}$ | $a$ = ' + str(a_list[2]))
+    plt.plot(data[2][:nspan - 1, 0], Faz_list[0], '--', color=c[0], label=r'$F_{az}$ | $a$ = ' + str(a_list[0]))
+    plt.plot(data[2][:nspan - 1, 0], Faz_list[1], '--', color=c[1], label=r'$F_{az}$ | $a$ = ' + str(a_list[1]))
+    plt.plot(data[2][:nspan - 1, 0], Faz_list[2], '--', color=c[2], label=r'$F_{az}$ | $a$ = ' + str(a_list[2]))
+    plt.xlabel('Radial location r/R (-)', fontsize=15)
+    plt.ylabel('Force $F$ (-)', fontsize=15)
+    plt.title(r'Radial distribution of $F_{ax}$ and $F_{az}$', fontsize=16)
+    plt.legend(fontsize=15)
+    plt.grid(True)
+    plt.savefig('Sensitivity_figures/convec_forces_a.eps', format='eps')
+
 if plot_WakeLength:
 
     nspan = 20
@@ -267,14 +331,14 @@ if plot_WakeLength:
     plt.savefig('Sensitivity_figures/varwake_circ.eps', format='eps')
 
     plt.figure(figsize=(8, 6), dpi=150)
-    plt.plot(data[2][:nspan - 1, 0], Fax_list[0], '-', color=c[0], label=r'$F_{ax}$ | # Rotations = ' + str(N_rotations[0]))
-    plt.plot(data[2][:nspan - 1, 0], Fax_list[1], '-', color=c[1], label=r'$F_{ax}$ | # Rotations = ' + str(N_rotations[1]))
-    plt.plot(data[2][:nspan - 1, 0], Fax_list[2], '-', color=c[2], label=r'$F_{ax}$ | # Rotations = ' + str(N_rotations[2]))
-    plt.plot(data[2][:nspan - 1, 0], Fax_list[3], '-', color=c[3], label=r'$F_{ax}$ | # Rotations = ' + str(N_rotations[3]))
-    plt.plot(data[2][:nspan - 1, 0], Faz_list[0], '--', color=c[0], label=r'$F_{az}$ | # Rotations = ' + str(N_rotations[0]))
-    plt.plot(data[2][:nspan - 1, 0], Faz_list[1], '--', color=c[1], label=r'$F_{az}$ | # Rotations = ' + str(N_rotations[1]))
-    plt.plot(data[2][:nspan - 1, 0], Faz_list[2], '--', color=c[2], label=r'$F_{az}$ | # Rotations = ' + str(N_rotations[2]))
-    plt.plot(data[2][:nspan - 1, 0], Faz_list[3], '--', color=c[3], label=r'$F_{az}$ | # Rotations = ' + str(N_rotations[3]))
+    plt.plot(data[2][:nspan - 1, 0], Fax_list[0], '-', color=c[0], label=r'$F_{ax}$ | # Rot = ' + str(N_rotations[0]))
+    plt.plot(data[2][:nspan - 1, 0], Fax_list[1], '-', color=c[1], label=r'$F_{ax}$ | # Rot = ' + str(N_rotations[1]))
+    plt.plot(data[2][:nspan - 1, 0], Fax_list[2], '-', color=c[2], label=r'$F_{ax}$ | # Rot = ' + str(N_rotations[2]))
+    plt.plot(data[2][:nspan - 1, 0], Fax_list[3], '-', color=c[3], label=r'$F_{ax}$ | # Rot = ' + str(N_rotations[3]))
+    plt.plot(data[2][:nspan - 1, 0], Faz_list[0], '--', color=c[0], label=r'$F_{az}$ | # Rot = ' + str(N_rotations[0]))
+    plt.plot(data[2][:nspan - 1, 0], Faz_list[1], '--', color=c[1], label=r'$F_{az}$ | # Rot = ' + str(N_rotations[1]))
+    plt.plot(data[2][:nspan - 1, 0], Faz_list[2], '--', color=c[2], label=r'$F_{az}$ | # Rot = ' + str(N_rotations[2]))
+    plt.plot(data[2][:nspan - 1, 0], Faz_list[3], '--', color=c[3], label=r'$F_{az}$ | # Rot = ' + str(N_rotations[3]))
     plt.xlabel('Radial location r/R (-)', fontsize=15)
     plt.ylabel('Force $F$ (-)', fontsize=15)
     plt.title(r'Radial distribution of $F_{ax}$ and $F_{az}$', fontsize=16)
