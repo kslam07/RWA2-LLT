@@ -9,45 +9,87 @@ from mpl_toolkits.mplot3d import Axes3D
 from read_BEMdata_into_Python import read_matlab_data
 import numpy as np
 
-plot_Spacing = False
-plot_DiscrAzimuthal = False
+plot_Spacing = True
+plot_DiscrAzimuthal = True
 plot_ConvecSpeed = False
 plot_WakeLength = False
 
+[BEM_rR, BEM_alpha, BEM_phi, BEM_rho, BEM_Ax, BEM_Az, BEM_Gamma,
+ BEM_CT, BEM_CP, BEM_a, BEM_aline, BEM_vinf, BEM_radius] = read_matlab_data()
 # =============================================================================
-#  Wake Discretization
+#  Spacing Discretization
 # =============================================================================
-if plot_DiscrAzimuthal:
-
-    nspan = 15
-    nthetaList = [50,100,400]
-    nthetaList = [25,50,75]
+if plot_Spacing:
+    nspan = 20
+    ntheta = 200
     nblades = 3
-    spacing = 'equal'
+    spacingList = ['equal','cosine']
+    c=["lawngreen", "deepskyblue", "orangered", "darkviolet"]
+    nrotor = 2
     
     plt.figure(figsize=(8, 6), dpi=150)
-    for ntheta in nthetaList:
+    idx=0
+    plt.plot(BEM_rR[0, :], BEM_Gamma[0, :], '--',c=c[idx], label=r'$\Gamma$ BEM equal spacing')
+    for spacing in spacingList:
+        idx+=1
         prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta,
             spacing=spacing, a=0, xshift=0, yshift=100, zshift=0, phase_diff=0, double_rotor=False)
-        # prop_geo.doubleRotor()
         solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.5, tol=1e-6,
                                    n_iter=200)
-        
         data = solver.run_solver()
-        omega = solver.geo.tsr * solver.geo.v_inf / solver.geo.radius
-        
+        omega = solver.geo.tsr * solver.geo.v_inf / solver.geo.radius    
         circ_nondim = (np.pi * solver.geo.v_inf ** 2) / (nblades * omega)
         
-        
-        # plt.plot(BEM_rR[0, :], BEM_Gamma[0, :], '-b', label=r'$\Gamma$ BEM')
-        plt.plot(data[2][:nspan - 1, 0], np.resize(data[5], data[2].shape)[:nspan - 1, 0] / circ_nondim, '-', label='$N_{theta}$= '+str(ntheta))
-
+        plt.plot(data[2][:nspan - 1, 0], np.resize(data[5], data[2].shape)[:nspan - 1, 0] / circ_nondim, label='Spacing: '+spacing,c=c[idx])
     plt.xlabel('Radial location r/R (-)', fontsize=15)
     plt.ylabel(r'Circulation $\Gamma$ (-)', fontsize=15)
     plt.title(r'Radial distribution of $\Gamma$', fontsize=16)
     plt.legend(fontsize=15)
     plt.grid(True)
+    [CP_LLM, CT_LLM, CP_LLM2Spacing, CT_LLM2Spacing] = solver.CP_and_CT(np.resize(data[0], data[2].shape), np.resize(data[1], data[2].shape), data[2],
+                                    np.resize(data[3], data[2].shape), np.resize(data[4], data[2].shape),
+                                    solver.geo.v_inf, omega, solver.geo.radius, nblades)
+    plt.savefig('sensitivity_spacing.pdf')
+# =============================================================================
+#  Wake Discretization
+# =============================================================================
+if plot_DiscrAzimuthal:
+    nspan = 20
+    nthetaList = [60,120,240]
+    nblades = 3
+    spacing = 'equal'
 
+    nrotor = 2
+    c=["lawngreen", "deepskyblue", "orangered", "darkviolet"]
+    
+    plt.figure(figsize=(8, 6), dpi=150)
+    idx=0
+    plt.plot(BEM_rR[0, :], BEM_Gamma[0, :], '--',c=c[idx], label=r'$\Gamma$ BEM')
+    for ntheta in nthetaList:
+        idx+=1
+        prop_geo = BladeGeometry(radius=50.0, tsr=8, v_inf=10.0, n_blades=3, n_span=nspan, n_theta=ntheta,
+            spacing=spacing, a=0, xshift=0, yshift=100, zshift=0, phase_diff=0, double_rotor=False)
+        solver = LiftingLineSolver(geo=prop_geo, r_rotor=50, weight=0.5, tol=1e-6,
+                                   n_iter=200)
+
+        data = solver.run_solver()
+        omega = solver.geo.tsr * solver.geo.v_inf / solver.geo.radius
+        circ_nondim = (np.pi * solver.geo.v_inf ** 2) / (nblades * omega)
+        
+
+        plt.plot(data[2][:nspan - 1, 0], np.resize(data[5], data[2].shape)[:nspan - 1, 0] / circ_nondim, label='$Segments/rot$= '+str(int(ntheta/15)),c=c[idx])
+    plt.xlabel('Radial location r/R (-)', fontsize=15)
+    plt.ylabel(r'Circulation $\Gamma$ (-)', fontsize=15)
+    plt.title(r'Radial distribution of $\Gamma$', fontsize=16)
+    plt.legend(fontsize=15)
+    plt.grid(True)
+    [CP_LLM, CT_LLM, CP_LLM2Azi, CT_LLM2Azi] = solver.CP_and_CT(np.resize(data[0], data[2].shape), np.resize(data[1], data[2].shape), data[2],
+                                    np.resize(data[3], data[2].shape), np.resize(data[4], data[2].shape),
+                                    solver.geo.v_inf, omega, solver.geo.radius, nblades)
+    plt.savefig('sensitivity_azimuthal.pdf')
+# =============================================================================
+# ConvecSpeed
+# =============================================================================
 if plot_ConvecSpeed:
 
     nspan = 20
