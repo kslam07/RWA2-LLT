@@ -243,7 +243,7 @@ class LiftingLineSolver:
 
             # set new estimate of bound circulation
             gamma_new = (1 - self.weight) * gamma_curr + self.weight * gamma_new
-        print("solution unconverged error: {}".format(err)) if err < self.tol else None
+        print("solution unconverged error: {}".format(err)) if err > self.tol else None
         return [a, aline, r_R, f_norm, f_tan, gamma, alpha, phi, error_log]
 
     def CP_and_CT(self, a, aline, r_R, f_norm, f_tan, v_inf, omega, radius, nblades):
