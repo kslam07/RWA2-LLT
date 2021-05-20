@@ -15,12 +15,15 @@ colors = ["lawngreen", "deepskyblue", "orangered", "darkviolet"]
 fig_circ, ax_circ = plt.subplots(1, 2, dpi=150)
 fig_ind, ax_ind = plt.subplots(1, 2, dpi=150)
 fig_aoa, ax_aoa = plt.subplots(1, 2, dpi=150)
-
+fig_rotor, ax_rotor = plt.subplots(1, 1, dpi=150)
 nspan = 20
 ntheta = 200
 nblades = 3
 spacing = 'equal'
 nrotor = 2
+
+CP = []
+CT = []
 
 for color, phase_shift in zip(colors, phase_shifts):
 
@@ -42,10 +45,12 @@ for color, phase_shift in zip(colors, phase_shifts):
     # circulation [5]
 
     omega = solver.geo.tsr * solver.geo.v_inf / solver.geo.radius
-    # [CP_LLM, CT_LLM] = solver.CP_and_CT(np.resize(data[0], data[2].shape), np.resize(data[1], data[2].shape), data[2],
-    #                                     np.resize(data[3], data[2].shape), np.resize(data[4], data[2].shape),
-    #                                     solver.geo.v_inf, omega, solver.geo.radius, nblades)
-
+    CPandCT = solver.CP_and_CT(np.resize(data_double[0], data_double[2].shape),
+                                        np.resize(data_double[1], data_double[2].shape),
+                                        data_double[2],
+                                        np.resize(data_double[3], data_double[2].shape),
+                                        np.resize(data_double[4], data_double[2].shape),
+                                        solver.geo.v_inf, omega, solver.geo.radius, nblades)
 
     # =============================================================================
     # Double Rotor Plotting
@@ -95,7 +100,8 @@ for color, phase_shift in zip(colors, phase_shifts):
     plt.close('All')
     r_R = data_double[2][:nspan-1]
 
-    [BEM_rR, BEM_alpha, BEM_phi, BEM_rho, BEM_Ax, BEM_Az, BEM_Gamma, BEM_CT, BEM_CP, BEM_a, BEM_aline] = read_matlab_data()
+    [BEM_rR, BEM_alpha, BEM_phi, BEM_rho, BEM_Ax, BEM_Az, BEM_Gamma , BEM_CT, BEM_CP, BEM_a,
+     BEM_aline, BEM_vinf, BEM_radius] = read_matlab_data()
     BEM_Ax = BEM_Ax / (0.5 * 10**2 * 50)
     BEM_Az = BEM_Az / (0.5 * 10**2 * 50)
 
@@ -127,6 +133,10 @@ for color, phase_shift in zip(colors, phase_shifts):
     # ax_ind[1].plot(data_double[2][:nspan - 1], data_double[1][:nspan - 1], linestyle='-')
     # ax_ind[1].plot(data_double[2][-(nspan - 1):], data_double[1][-(nspan - 1):], linestyle='--')
     # ax_ind[1].plot(data_single[2][:nspan - 1], data_single[1][:nspan - 1], ':r', label="LLM - single rotor")
+
+    # CP and CT
+    CT.append(CPandCT[-1])
+    CP.append(CPandCT[-2])
 
 ax_circ[0].set_xlabel('r/R (-)', fontsize=14)
 ax_circ[0].set_ylabel(r'$\Gamma$ (-)', fontsize=14)
